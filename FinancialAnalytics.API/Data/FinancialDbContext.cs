@@ -15,6 +15,7 @@ public class FinancialDbContext : DbContext
     public DbSet<Room> Rooms { get; set; }
     public DbSet<RoomUsage> RoomUsages { get; set; }
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<DiagnosticResult> Diagnostics { get; set; }
     public DbSet<Student> Students { get; set; }
     public DbSet<StudentProgress> StudentProgress { get; set; }
     public DbSet<Report> Reports { get; set; }
@@ -110,8 +111,8 @@ public class FinancialDbContext : DbContext
             entity.Property(e => e.Content).HasColumnType("LONGTEXT");
         });
 
-        // Seed data
-        SeedData(modelBuilder);
+        // Seed data disabled - using legacy data sync instead
+        // SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)
