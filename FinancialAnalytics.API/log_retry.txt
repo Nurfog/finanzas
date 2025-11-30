@@ -1,0 +1,968 @@
+Building...
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (26ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE DATABASE `financial_analytics`;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (29ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      ALTER DATABASE CHARACTER SET utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (117ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Customers` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `Name` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+          `Email` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+          `Phone` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `RegistrationDate` datetime(6) NOT NULL,
+          `CustomerType` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `IsActive` tinyint(1) NOT NULL,
+          CONSTRAINT `PK_Customers` PRIMARY KEY (`Id`)
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (105ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Locations` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `Name` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+          `Address` varchar(500) CHARACTER SET utf8mb4 NOT NULL,
+          `City` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Country` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `IsActive` tinyint(1) NOT NULL,
+          `OpeningDate` datetime(6) NOT NULL,
+          CONSTRAINT `PK_Locations` PRIMARY KEY (`Id`)
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (103ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Reports` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `Title` varchar(300) CHARACTER SET utf8mb4 NOT NULL,
+          `ReportType` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `GeneratedDate` datetime(6) NOT NULL,
+          `StartDate` datetime(6) NOT NULL,
+          `EndDate` datetime(6) NOT NULL,
+          `Content` LONGTEXT CHARACTER SET utf8mb4 NOT NULL,
+          `GeneratedBy` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Status` longtext CHARACTER SET utf8mb4 NOT NULL,
+          CONSTRAINT `PK_Reports` PRIMARY KEY (`Id`)
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (109ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Students` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `Name` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+          `Email` varchar(200) CHARACTER SET utf8mb4 NOT NULL,
+          `CustomerId` int NOT NULL,
+          `EnrollmentDate` datetime(6) NOT NULL,
+          `Program` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `IsActive` tinyint(1) NOT NULL,
+          CONSTRAINT `PK_Students` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_Students_Customers_CustomerId` FOREIGN KEY (`CustomerId`) REFERENCES `Customers` (`Id`) ON DELETE CASCADE
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (122ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Rooms` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `Name` varchar(100) CHARACTER SET utf8mb4 NOT NULL,
+          `Capacity` int NOT NULL,
+          `RoomType` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `LocationId` int NOT NULL,
+          `IsActive` tinyint(1) NOT NULL,
+          CONSTRAINT `PK_Rooms` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_Rooms_Locations_LocationId` FOREIGN KEY (`LocationId`) REFERENCES `Locations` (`Id`) ON DELETE CASCADE
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (129ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Transactions` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `CustomerId` int NOT NULL,
+          `LocationId` int NOT NULL,
+          `TransactionDate` datetime(6) NOT NULL,
+          `Amount` decimal(18,2) NOT NULL,
+          `TransactionType` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `PaymentMethod` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Description` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Status` longtext CHARACTER SET utf8mb4 NOT NULL,
+          CONSTRAINT `PK_Transactions` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_Transactions_Customers_CustomerId` FOREIGN KEY (`CustomerId`) REFERENCES `Customers` (`Id`) ON DELETE RESTRICT,
+          CONSTRAINT `FK_Transactions_Locations_LocationId` FOREIGN KEY (`LocationId`) REFERENCES `Locations` (`Id`) ON DELETE RESTRICT
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (127ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `Diagnostics` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `StudentId` int NOT NULL,
+          `AssessmentDate` datetime(6) NOT NULL,
+          `Score` decimal(5,2) NOT NULL,
+          `Type` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `ResultData` longtext CHARACTER SET utf8mb4 NOT NULL,
+          CONSTRAINT `PK_Diagnostics` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_Diagnostics_Students_StudentId` FOREIGN KEY (`StudentId`) REFERENCES `Students` (`Id`) ON DELETE CASCADE
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (125ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `StudentProgress` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `StudentId` int NOT NULL,
+          `AssessmentDate` datetime(6) NOT NULL,
+          `Subject` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Score` decimal(5,2) NOT NULL,
+          `AttendanceRate` int NOT NULL,
+          `PerformanceLevel` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `Notes` longtext CHARACTER SET utf8mb4 NOT NULL,
+          CONSTRAINT `PK_StudentProgress` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_StudentProgress_Students_StudentId` FOREIGN KEY (`StudentId`) REFERENCES `Students` (`Id`) ON DELETE CASCADE
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (118ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE TABLE `RoomUsages` (
+          `Id` int NOT NULL AUTO_INCREMENT,
+          `RoomId` int NOT NULL,
+          `StartTime` datetime(6) NOT NULL,
+          `EndTime` datetime(6) NOT NULL,
+          `AttendeeCount` int NOT NULL,
+          `Purpose` longtext CHARACTER SET utf8mb4 NOT NULL,
+          `UtilizationRate` decimal(5,2) NOT NULL,
+          CONSTRAINT `PK_RoomUsages` PRIMARY KEY (`Id`),
+          CONSTRAINT `FK_RoomUsages_Rooms_RoomId` FOREIGN KEY (`RoomId`) REFERENCES `Rooms` (`Id`) ON DELETE CASCADE
+      ) CHARACTER SET=utf8mb4;
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (47ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Customers` (`Id`, `CustomerType`, `Email`, `IsActive`, `Name`, `Phone`, `RegistrationDate`)
+      VALUES (1, 'Premium', 'juan.perez@example.com', TRUE, 'Juan Pérez', '+56912345678', TIMESTAMP '2023-01-10 00:00:00'),
+      (2, 'Regular', 'maria.gonzalez@example.com', TRUE, 'María González', '+56987654321', TIMESTAMP '2023-02-15 00:00:00'),
+      (3, 'VIP', 'carlos.rodriguez@example.com', TRUE, 'Carlos Rodríguez', '+56911223344', TIMESTAMP '2023-03-20 00:00:00'),
+      (4, 'Regular', 'ana.martinez@example.com', TRUE, 'Ana Martínez', '+56922334455', TIMESTAMP '2023-04-05 00:00:00'),
+      (5, 'Premium', 'pedro.silva@example.com', TRUE, 'Pedro Silva', '+56933445566', TIMESTAMP '2023-05-12 00:00:00');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (31ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Locations` (`Id`, `Address`, `City`, `Country`, `IsActive`, `Name`, `OpeningDate`)
+      VALUES (1, 'Av. Principal 123', 'Santiago', 'Chile', TRUE, 'Sede Central', TIMESTAMP '2020-01-15 00:00:00'),
+      (2, 'Calle Norte 456', 'Santiago', 'Chile', TRUE, 'Sede Norte', TIMESTAMP '2021-03-10 00:00:00'),
+      (3, 'Av. Sur 789', 'Valparaíso', 'Chile', TRUE, 'Sede Sur', TIMESTAMP '2022-06-01 00:00:00');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (23ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Rooms` (`Id`, `Capacity`, `IsActive`, `LocationId`, `Name`, `RoomType`)
+      VALUES (1, 30, TRUE, 1, 'Sala A1', 'Classroom'),
+      (2, 25, TRUE, 1, 'Sala A2', 'Classroom'),
+      (3, 20, TRUE, 1, 'Lab 1', 'Lab'),
+      (4, 35, TRUE, 2, 'Sala B1', 'Classroom'),
+      (5, 30, TRUE, 2, 'Sala B2', 'Classroom'),
+      (6, 40, TRUE, 3, 'Sala C1', 'Conference');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (17ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Students` (`Id`, `CustomerId`, `Email`, `EnrollmentDate`, `IsActive`, `Name`, `Program`)
+      VALUES (1, 1, 'sofia.perez@example.com', TIMESTAMP '2023-01-15 00:00:00', TRUE, 'Sofía Pérez', 'Matemáticas Avanzadas'),
+      (2, 2, 'diego.gonzalez@example.com', TIMESTAMP '2023-02-20 00:00:00', TRUE, 'Diego González', 'Programación'),
+      (3, 3, 'valentina.rodriguez@example.com', TIMESTAMP '2023-03-25 00:00:00', TRUE, 'Valentina Rodríguez', 'Inglés'),
+      (4, 4, 'mateo.martinez@example.com', TIMESTAMP '2023-04-10 00:00:00', TRUE, 'Mateo Martínez', 'Ciencias'),
+      (5, 5, 'isabella.silva@example.com', TIMESTAMP '2023-05-18 00:00:00', TRUE, 'Isabella Silva', 'Arte');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (55ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `Transactions` (`Id`, `Amount`, `CustomerId`, `Description`, `LocationId`, `PaymentMethod`, `Status`, `TransactionDate`, `TransactionType`)
+      VALUES (1, 113.0, 1, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-12 01:22:35.989239', 'Fee'),
+      (2, 285.0, 2, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-27 01:22:35.989239', 'Payment'),
+      (3, 168.0, 3, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-26 01:22:35.989239', 'Payment'),
+      (4, 280.0, 4, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-10 01:22:35.989239', 'Payment'),
+      (5, 392.0, 5, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-26 01:22:35.989239', 'Fee'),
+      (6, 165.0, 1, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-24 01:22:35.989239', 'Payment'),
+      (7, 194.0, 2, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-16 01:22:35.989239', 'Payment'),
+      (8, 167.0, 3, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-20 01:22:35.989239', 'Payment'),
+      (9, 65.0, 4, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-16 01:22:35.989239', 'Fee'),
+      (10, 309.0, 5, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-08 01:22:35.989239', 'Payment'),
+      (11, 118.0, 1, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-19 01:22:35.989239', 'Payment'),
+      (12, 367.0, 2, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-28 01:22:35.989239', 'Payment'),
+      (13, 292.0, 3, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-08 01:22:35.989239', 'Fee'),
+      (14, 370.0, 4, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-29 01:22:35.989239', 'Payment'),
+      (15, 457.0, 5, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-26 01:22:35.989239', 'Payment'),
+      (16, 282.0, 1, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-11 01:22:35.989239', 'Payment'),
+      (17, 68.0, 2, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-25 01:22:35.989239', 'Fee'),
+      (18, 312.0, 3, 'Monthly payment - November 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-11-22 01:22:35.989239', 'Payment'),
+      (19, 51.0, 4, 'Monthly payment - November 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-11-08 01:22:35.989239', 'Payment'),
+      (20, 412.0, 5, 'Monthly payment - November 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-11-15 01:22:35.989239', 'Payment'),
+      (21, 223.0, 1, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-10 01:22:35.989262', 'Fee'),
+      (22, 61.0, 2, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-26 01:22:35.989262', 'Payment'),
+      (23, 401.0, 3, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-29 01:22:35.989262', 'Payment'),
+      (24, 101.0, 4, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-13 01:22:35.989262', 'Payment'),
+      (25, 397.0, 5, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-24 01:22:35.989262', 'Fee'),
+      (26, 341.0, 1, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-22 01:22:35.989262', 'Payment'),
+      (27, 70.0, 2, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-26 01:22:35.989262', 'Payment'),
+      (28, 282.0, 3, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-14 01:22:35.989262', 'Payment'),
+      (29, 239.0, 4, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-29 01:22:35.989262', 'Fee'),
+      (30, 332.0, 5, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-11 01:22:35.989262', 'Payment'),
+      (31, 55.0, 1, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-24 01:22:35.989262', 'Payment'),
+      (32, 170.0, 2, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-20 01:22:35.989262', 'Payment'),
+      (33, 373.0, 3, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-29 01:22:35.989262', 'Fee'),
+      (34, 258.0, 4, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-29 01:22:35.989262', 'Payment'),
+      (35, 409.0, 5, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-30 01:22:35.989262', 'Payment'),
+      (36, 281.0, 1, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-18 01:22:35.989262', 'Payment'),
+      (37, 54.0, 2, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-17 01:22:35.989262', 'Fee'),
+      (38, 55.0, 3, 'Monthly payment - October 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-10-07 01:22:35.989262', 'Payment'),
+      (39, 78.0, 4, 'Monthly payment - October 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-10-30 01:22:35.989262', 'Payment'),
+      (40, 65.0, 5, 'Monthly payment - October 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-10-12 01:22:35.989262', 'Payment'),
+      (41, 468.0, 1, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-05 01:22:35.989311', 'Fee'),
+      (42, 218.0, 2, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-18 01:22:35.989311', 'Payment');
+      INSERT INTO `Transactions` (`Id`, `Amount`, `CustomerId`, `Description`, `LocationId`, `PaymentMethod`, `Status`, `TransactionDate`, `TransactionType`)
+      VALUES (43, 69.0, 3, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-13 01:22:35.989311', 'Payment'),
+      (44, 113.0, 4, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-20 01:22:35.989311', 'Payment'),
+      (45, 406.0, 5, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-18 01:22:35.989311', 'Fee'),
+      (46, 230.0, 1, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-16 01:22:35.989311', 'Payment'),
+      (47, 458.0, 2, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-22 01:22:35.989311', 'Payment'),
+      (48, 380.0, 3, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-14 01:22:35.989311', 'Payment'),
+      (49, 446.0, 4, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-30 01:22:35.989311', 'Fee'),
+      (50, 199.0, 5, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-04 01:22:35.989311', 'Payment'),
+      (51, 123.0, 1, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-11 01:22:35.989311', 'Payment'),
+      (52, 253.0, 2, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-28 01:22:35.989311', 'Payment'),
+      (53, 399.0, 3, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-21 01:22:35.989311', 'Fee'),
+      (54, 110.0, 4, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-26 01:22:35.989311', 'Payment'),
+      (55, 316.0, 5, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-24 01:22:35.989311', 'Payment'),
+      (56, 494.0, 1, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-16 01:22:35.989311', 'Payment'),
+      (57, 352.0, 2, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-09 01:22:35.989311', 'Fee'),
+      (58, 180.0, 3, 'Monthly payment - September 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-09-10 01:22:35.989311', 'Payment'),
+      (59, 495.0, 4, 'Monthly payment - September 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-09-15 01:22:35.989311', 'Payment'),
+      (60, 60.0, 5, 'Monthly payment - September 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-09-12 01:22:35.989311', 'Payment'),
+      (61, 468.0, 1, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-21 01:22:35.98932', 'Fee'),
+      (62, 148.0, 2, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-30 01:22:35.98932', 'Payment'),
+      (63, 67.0, 3, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-23 01:22:35.98932', 'Payment'),
+      (64, 316.0, 4, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-24 01:22:35.98932', 'Payment'),
+      (65, 92.0, 5, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-19 01:22:35.98932', 'Fee'),
+      (66, 104.0, 1, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-03 01:22:35.98932', 'Payment'),
+      (67, 194.0, 2, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-28 01:22:35.98932', 'Payment'),
+      (68, 388.0, 3, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-21 01:22:35.98932', 'Payment'),
+      (69, 54.0, 4, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-07 01:22:35.98932', 'Fee'),
+      (70, 428.0, 5, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-29 01:22:35.98932', 'Payment'),
+      (71, 157.0, 1, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-05 01:22:35.98932', 'Payment'),
+      (72, 430.0, 2, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-05 01:22:35.98932', 'Payment'),
+      (73, 295.0, 3, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-23 01:22:35.98932', 'Fee'),
+      (74, 331.0, 4, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-13 01:22:35.98932', 'Payment'),
+      (75, 183.0, 5, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-25 01:22:35.98932', 'Payment'),
+      (76, 63.0, 1, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-25 01:22:35.98932', 'Payment'),
+      (77, 470.0, 2, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-24 01:22:35.98932', 'Fee'),
+      (78, 401.0, 3, 'Monthly payment - August 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-08-03 01:22:35.98932', 'Payment'),
+      (79, 447.0, 4, 'Monthly payment - August 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-08-27 01:22:35.98932', 'Payment'),
+      (80, 182.0, 5, 'Monthly payment - August 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-08-25 01:22:35.98932', 'Payment'),
+      (81, 300.0, 1, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-15 01:22:35.989334', 'Fee'),
+      (82, 104.0, 2, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-11 01:22:35.989334', 'Payment'),
+      (83, 226.0, 3, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-14 01:22:35.989334', 'Payment'),
+      (84, 250.0, 4, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-06 01:22:35.989334', 'Payment');
+      INSERT INTO `Transactions` (`Id`, `Amount`, `CustomerId`, `Description`, `LocationId`, `PaymentMethod`, `Status`, `TransactionDate`, `TransactionType`)
+      VALUES (85, 483.0, 5, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-21 01:22:35.989334', 'Fee'),
+      (86, 294.0, 1, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-18 01:22:35.989334', 'Payment'),
+      (87, 414.0, 2, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-04 01:22:35.989334', 'Payment'),
+      (88, 98.0, 3, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-27 01:22:35.989334', 'Payment'),
+      (89, 131.0, 4, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-30 01:22:35.989334', 'Fee'),
+      (90, 374.0, 5, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-04 01:22:35.989334', 'Payment'),
+      (91, 315.0, 1, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-19 01:22:35.989334', 'Payment'),
+      (92, 106.0, 2, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-19 01:22:35.989334', 'Payment'),
+      (93, 483.0, 3, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-05 01:22:35.989334', 'Fee'),
+      (94, 127.0, 4, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-06 01:22:35.989334', 'Payment'),
+      (95, 293.0, 5, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-21 01:22:35.989334', 'Payment'),
+      (96, 474.0, 1, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-13 01:22:35.989334', 'Payment'),
+      (97, 386.0, 2, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-07 01:22:35.989334', 'Fee'),
+      (98, 202.0, 3, 'Monthly payment - July 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-07-23 01:22:35.989334', 'Payment'),
+      (99, 411.0, 4, 'Monthly payment - July 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-07-16 01:22:35.989334', 'Payment'),
+      (100, 449.0, 5, 'Monthly payment - July 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-07-24 01:22:35.989334', 'Payment'),
+      (101, 135.0, 1, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-12 01:22:35.989341', 'Fee'),
+      (102, 152.0, 2, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-23 01:22:35.989341', 'Payment'),
+      (103, 338.0, 3, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-07 01:22:35.989341', 'Payment'),
+      (104, 239.0, 4, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-28 01:22:35.989341', 'Payment'),
+      (105, 446.0, 5, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-08 01:22:35.989341', 'Fee'),
+      (106, 479.0, 1, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-09 01:22:35.989341', 'Payment'),
+      (107, 259.0, 2, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-04 01:22:35.989341', 'Payment'),
+      (108, 486.0, 3, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-06 01:22:35.989341', 'Payment'),
+      (109, 314.0, 4, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-26 01:22:35.989341', 'Fee'),
+      (110, 335.0, 5, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-25 01:22:35.989341', 'Payment'),
+      (111, 368.0, 1, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-16 01:22:35.989341', 'Payment'),
+      (112, 412.0, 2, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-27 01:22:35.989341', 'Payment'),
+      (113, 284.0, 3, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-21 01:22:35.989341', 'Fee'),
+      (114, 140.0, 4, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-10 01:22:35.989341', 'Payment'),
+      (115, 404.0, 5, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-16 01:22:35.989341', 'Payment'),
+      (116, 139.0, 1, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-14 01:22:35.989341', 'Payment'),
+      (117, 73.0, 2, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-04 01:22:35.989341', 'Fee'),
+      (118, 146.0, 3, 'Monthly payment - June 2025', 3, 'Transfer', 'Completed', TIMESTAMP '2025-06-29 01:22:35.989341', 'Payment'),
+      (119, 127.0, 4, 'Monthly payment - June 2025', 1, 'Cash', 'Completed', TIMESTAMP '2025-06-22 01:22:35.989341', 'Payment'),
+      (120, 171.0, 5, 'Monthly payment - June 2025', 2, 'Card', 'Completed', TIMESTAMP '2025-06-22 01:22:35.989341', 'Payment');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (290ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (1, 32, TIMESTAMP '2025-11-30 12:00:00', 'Class', 1, TIMESTAMP '2025-11-30 09:00:00', 76.0),
+      (2, 17, TIMESTAMP '2025-11-30 17:00:00', 'Class', 1, TIMESTAMP '2025-11-30 14:00:00', 76.0),
+      (3, 34, TIMESTAMP '2025-11-30 12:00:00', 'Class', 2, TIMESTAMP '2025-11-30 09:00:00', 72.0),
+      (4, 17, TIMESTAMP '2025-11-30 12:00:00', 'Class', 3, TIMESTAMP '2025-11-30 09:00:00', 66.0),
+      (5, 24, TIMESTAMP '2025-11-30 12:00:00', 'Class', 4, TIMESTAMP '2025-11-30 09:00:00', 81.0),
+      (6, 29, TIMESTAMP '2025-11-30 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-30 14:00:00', 68.0),
+      (7, 32, TIMESTAMP '2025-11-30 12:00:00', 'Class', 5, TIMESTAMP '2025-11-30 09:00:00', 70.0),
+      (8, 32, TIMESTAMP '2025-11-30 12:00:00', 'Class', 6, TIMESTAMP '2025-11-30 09:00:00', 91.0),
+      (9, 14, TIMESTAMP '2025-11-30 17:00:00', 'Class', 6, TIMESTAMP '2025-11-30 14:00:00', 50.0),
+      (10, 32, TIMESTAMP '2025-11-29 12:00:00', 'Class', 1, TIMESTAMP '2025-11-29 09:00:00', 74.0),
+      (11, 26, TIMESTAMP '2025-11-29 12:00:00', 'Class', 2, TIMESTAMP '2025-11-29 09:00:00', 94.0),
+      (12, 28, TIMESTAMP '2025-11-29 17:00:00', 'Class', 2, TIMESTAMP '2025-11-29 14:00:00', 51.0),
+      (13, 18, TIMESTAMP '2025-11-29 12:00:00', 'Class', 3, TIMESTAMP '2025-11-29 09:00:00', 83.0),
+      (14, 23, TIMESTAMP '2025-11-29 17:00:00', 'Class', 3, TIMESTAMP '2025-11-29 14:00:00', 64.0),
+      (15, 18, TIMESTAMP '2025-11-29 12:00:00', 'Class', 4, TIMESTAMP '2025-11-29 09:00:00', 67.0),
+      (16, 26, TIMESTAMP '2025-11-29 12:00:00', 'Class', 5, TIMESTAMP '2025-11-29 09:00:00', 81.0),
+      (17, 22, TIMESTAMP '2025-11-29 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-29 14:00:00', 55.0),
+      (18, 31, TIMESTAMP '2025-11-29 12:00:00', 'Class', 6, TIMESTAMP '2025-11-29 09:00:00', 70.0),
+      (19, 18, TIMESTAMP '2025-11-28 12:00:00', 'Class', 1, TIMESTAMP '2025-11-28 09:00:00', 60.0),
+      (20, 18, TIMESTAMP '2025-11-28 12:00:00', 'Class', 2, TIMESTAMP '2025-11-28 09:00:00', 65.0),
+      (21, 22, TIMESTAMP '2025-11-28 17:00:00', 'Meeting', 2, TIMESTAMP '2025-11-28 14:00:00', 87.0),
+      (22, 14, TIMESTAMP '2025-11-28 12:00:00', 'Class', 3, TIMESTAMP '2025-11-28 09:00:00', 82.0),
+      (23, 22, TIMESTAMP '2025-11-28 17:00:00', 'Class', 3, TIMESTAMP '2025-11-28 14:00:00', 84.0),
+      (24, 18, TIMESTAMP '2025-11-28 12:00:00', 'Class', 4, TIMESTAMP '2025-11-28 09:00:00', 81.0),
+      (25, 17, TIMESTAMP '2025-11-28 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-28 14:00:00', 81.0),
+      (26, 23, TIMESTAMP '2025-11-28 12:00:00', 'Class', 5, TIMESTAMP '2025-11-28 09:00:00', 78.0),
+      (27, 20, TIMESTAMP '2025-11-28 12:00:00', 'Class', 6, TIMESTAMP '2025-11-28 09:00:00', 82.0),
+      (28, 27, TIMESTAMP '2025-11-27 12:00:00', 'Class', 1, TIMESTAMP '2025-11-27 09:00:00', 67.0),
+      (29, 19, TIMESTAMP '2025-11-27 17:00:00', 'Class', 1, TIMESTAMP '2025-11-27 14:00:00', 77.0),
+      (30, 17, TIMESTAMP '2025-11-27 12:00:00', 'Class', 2, TIMESTAMP '2025-11-27 09:00:00', 80.0),
+      (31, 21, TIMESTAMP '2025-11-27 12:00:00', 'Class', 3, TIMESTAMP '2025-11-27 09:00:00', 94.0),
+      (32, 31, TIMESTAMP '2025-11-27 12:00:00', 'Class', 4, TIMESTAMP '2025-11-27 09:00:00', 61.0),
+      (33, 17, TIMESTAMP '2025-11-27 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-27 14:00:00', 72.0),
+      (34, 20, TIMESTAMP '2025-11-27 12:00:00', 'Class', 5, TIMESTAMP '2025-11-27 09:00:00', 60.0),
+      (35, 21, TIMESTAMP '2025-11-27 12:00:00', 'Class', 6, TIMESTAMP '2025-11-27 09:00:00', 70.0),
+      (36, 23, TIMESTAMP '2025-11-27 17:00:00', 'Class', 6, TIMESTAMP '2025-11-27 14:00:00', 53.0),
+      (37, 14, TIMESTAMP '2025-11-26 12:00:00', 'Class', 1, TIMESTAMP '2025-11-26 09:00:00', 87.0),
+      (38, 27, TIMESTAMP '2025-11-26 17:00:00', 'Class', 1, TIMESTAMP '2025-11-26 14:00:00', 70.0),
+      (39, 15, TIMESTAMP '2025-11-26 12:00:00', 'Class', 2, TIMESTAMP '2025-11-26 09:00:00', 93.0),
+      (40, 25, TIMESTAMP '2025-11-26 12:00:00', 'Class', 3, TIMESTAMP '2025-11-26 09:00:00', 82.0),
+      (41, 22, TIMESTAMP '2025-11-26 12:00:00', 'Class', 4, TIMESTAMP '2025-11-26 09:00:00', 71.0),
+      (42, 10, TIMESTAMP '2025-11-26 17:00:00', 'Class', 4, TIMESTAMP '2025-11-26 14:00:00', 75.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (43, 32, TIMESTAMP '2025-11-26 12:00:00', 'Class', 5, TIMESTAMP '2025-11-26 09:00:00', 79.0),
+      (44, 16, TIMESTAMP '2025-11-26 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-26 14:00:00', 64.0),
+      (45, 12, TIMESTAMP '2025-11-26 12:00:00', 'Class', 6, TIMESTAMP '2025-11-26 09:00:00', 60.0),
+      (46, 10, TIMESTAMP '2025-11-25 12:00:00', 'Class', 1, TIMESTAMP '2025-11-25 09:00:00', 68.0),
+      (47, 30, TIMESTAMP '2025-11-25 12:00:00', 'Class', 2, TIMESTAMP '2025-11-25 09:00:00', 88.0),
+      (48, 21, TIMESTAMP '2025-11-25 17:00:00', 'Meeting', 2, TIMESTAMP '2025-11-25 14:00:00', 81.0),
+      (49, 17, TIMESTAMP '2025-11-25 12:00:00', 'Class', 3, TIMESTAMP '2025-11-25 09:00:00', 79.0),
+      (50, 8, TIMESTAMP '2025-11-25 17:00:00', 'Class', 3, TIMESTAMP '2025-11-25 14:00:00', 53.0),
+      (51, 23, TIMESTAMP '2025-11-25 12:00:00', 'Class', 4, TIMESTAMP '2025-11-25 09:00:00', 87.0),
+      (52, 27, TIMESTAMP '2025-11-25 12:00:00', 'Class', 5, TIMESTAMP '2025-11-25 09:00:00', 91.0),
+      (53, 32, TIMESTAMP '2025-11-25 12:00:00', 'Class', 6, TIMESTAMP '2025-11-25 09:00:00', 72.0),
+      (54, 26, TIMESTAMP '2025-11-25 17:00:00', 'Class', 6, TIMESTAMP '2025-11-25 14:00:00', 83.0),
+      (55, 33, TIMESTAMP '2025-11-24 12:00:00', 'Class', 1, TIMESTAMP '2025-11-24 09:00:00', 88.0),
+      (56, 12, TIMESTAMP '2025-11-24 12:00:00', 'Class', 2, TIMESTAMP '2025-11-24 09:00:00', 87.0),
+      (57, 31, TIMESTAMP '2025-11-24 12:00:00', 'Class', 3, TIMESTAMP '2025-11-24 09:00:00', 66.0),
+      (58, 34, TIMESTAMP '2025-11-24 12:00:00', 'Class', 4, TIMESTAMP '2025-11-24 09:00:00', 88.0),
+      (59, 21, TIMESTAMP '2025-11-24 12:00:00', 'Class', 5, TIMESTAMP '2025-11-24 09:00:00', 91.0),
+      (60, 13, TIMESTAMP '2025-11-24 17:00:00', 'Class', 5, TIMESTAMP '2025-11-24 14:00:00', 64.0),
+      (61, 24, TIMESTAMP '2025-11-24 12:00:00', 'Class', 6, TIMESTAMP '2025-11-24 09:00:00', 92.0),
+      (62, 11, TIMESTAMP '2025-11-23 12:00:00', 'Class', 1, TIMESTAMP '2025-11-23 09:00:00', 89.0),
+      (63, 26, TIMESTAMP '2025-11-23 17:00:00', 'Class', 1, TIMESTAMP '2025-11-23 14:00:00', 54.0),
+      (64, 34, TIMESTAMP '2025-11-23 12:00:00', 'Class', 2, TIMESTAMP '2025-11-23 09:00:00', 64.0),
+      (65, 22, TIMESTAMP '2025-11-23 12:00:00', 'Class', 3, TIMESTAMP '2025-11-23 09:00:00', 93.0),
+      (66, 20, TIMESTAMP '2025-11-23 17:00:00', 'Class', 3, TIMESTAMP '2025-11-23 14:00:00', 62.0),
+      (67, 13, TIMESTAMP '2025-11-23 12:00:00', 'Class', 4, TIMESTAMP '2025-11-23 09:00:00', 66.0),
+      (68, 12, TIMESTAMP '2025-11-23 12:00:00', 'Class', 5, TIMESTAMP '2025-11-23 09:00:00', 65.0),
+      (69, 16, TIMESTAMP '2025-11-23 17:00:00', 'Class', 5, TIMESTAMP '2025-11-23 14:00:00', 89.0),
+      (70, 27, TIMESTAMP '2025-11-23 12:00:00', 'Class', 6, TIMESTAMP '2025-11-23 09:00:00', 69.0),
+      (71, 22, TIMESTAMP '2025-11-22 12:00:00', 'Class', 1, TIMESTAMP '2025-11-22 09:00:00', 81.0),
+      (72, 11, TIMESTAMP '2025-11-22 12:00:00', 'Class', 2, TIMESTAMP '2025-11-22 09:00:00', 69.0),
+      (73, 33, TIMESTAMP '2025-11-22 12:00:00', 'Class', 3, TIMESTAMP '2025-11-22 09:00:00', 90.0),
+      (74, 17, TIMESTAMP '2025-11-22 12:00:00', 'Class', 4, TIMESTAMP '2025-11-22 09:00:00', 68.0),
+      (75, 26, TIMESTAMP '2025-11-22 17:00:00', 'Class', 4, TIMESTAMP '2025-11-22 14:00:00', 52.0),
+      (76, 30, TIMESTAMP '2025-11-22 12:00:00', 'Class', 5, TIMESTAMP '2025-11-22 09:00:00', 75.0),
+      (77, 29, TIMESTAMP '2025-11-22 12:00:00', 'Class', 6, TIMESTAMP '2025-11-22 09:00:00', 91.0),
+      (78, 27, TIMESTAMP '2025-11-22 17:00:00', 'Meeting', 6, TIMESTAMP '2025-11-22 14:00:00', 74.0),
+      (79, 25, TIMESTAMP '2025-11-21 12:00:00', 'Class', 1, TIMESTAMP '2025-11-21 09:00:00', 76.0),
+      (80, 21, TIMESTAMP '2025-11-21 12:00:00', 'Class', 2, TIMESTAMP '2025-11-21 09:00:00', 83.0),
+      (81, 16, TIMESTAMP '2025-11-21 17:00:00', 'Meeting', 2, TIMESTAMP '2025-11-21 14:00:00', 54.0),
+      (82, 12, TIMESTAMP '2025-11-21 12:00:00', 'Class', 3, TIMESTAMP '2025-11-21 09:00:00', 77.0),
+      (83, 18, TIMESTAMP '2025-11-21 12:00:00', 'Class', 4, TIMESTAMP '2025-11-21 09:00:00', 76.0),
+      (84, 13, TIMESTAMP '2025-11-21 12:00:00', 'Class', 5, TIMESTAMP '2025-11-21 09:00:00', 81.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (85, 18, TIMESTAMP '2025-11-21 12:00:00', 'Class', 6, TIMESTAMP '2025-11-21 09:00:00', 88.0),
+      (86, 18, TIMESTAMP '2025-11-20 12:00:00', 'Class', 1, TIMESTAMP '2025-11-20 09:00:00', 69.0),
+      (87, 17, TIMESTAMP '2025-11-20 17:00:00', 'Class', 1, TIMESTAMP '2025-11-20 14:00:00', 54.0),
+      (88, 13, TIMESTAMP '2025-11-20 12:00:00', 'Class', 2, TIMESTAMP '2025-11-20 09:00:00', 92.0),
+      (89, 24, TIMESTAMP '2025-11-20 17:00:00', 'Class', 2, TIMESTAMP '2025-11-20 14:00:00', 69.0),
+      (90, 32, TIMESTAMP '2025-11-20 12:00:00', 'Class', 3, TIMESTAMP '2025-11-20 09:00:00', 75.0),
+      (91, 12, TIMESTAMP '2025-11-20 12:00:00', 'Class', 4, TIMESTAMP '2025-11-20 09:00:00', 76.0),
+      (92, 22, TIMESTAMP '2025-11-20 17:00:00', 'Class', 4, TIMESTAMP '2025-11-20 14:00:00', 53.0),
+      (93, 17, TIMESTAMP '2025-11-20 12:00:00', 'Class', 5, TIMESTAMP '2025-11-20 09:00:00', 85.0),
+      (94, 19, TIMESTAMP '2025-11-20 17:00:00', 'Class', 5, TIMESTAMP '2025-11-20 14:00:00', 89.0),
+      (95, 13, TIMESTAMP '2025-11-20 12:00:00', 'Class', 6, TIMESTAMP '2025-11-20 09:00:00', 82.0),
+      (96, 18, TIMESTAMP '2025-11-20 17:00:00', 'Class', 6, TIMESTAMP '2025-11-20 14:00:00', 63.0),
+      (97, 26, TIMESTAMP '2025-11-19 12:00:00', 'Class', 1, TIMESTAMP '2025-11-19 09:00:00', 69.0),
+      (98, 18, TIMESTAMP '2025-11-19 17:00:00', 'Meeting', 1, TIMESTAMP '2025-11-19 14:00:00', 54.0),
+      (99, 14, TIMESTAMP '2025-11-19 12:00:00', 'Class', 2, TIMESTAMP '2025-11-19 09:00:00', 67.0),
+      (100, 24, TIMESTAMP '2025-11-19 17:00:00', 'Class', 2, TIMESTAMP '2025-11-19 14:00:00', 85.0),
+      (101, 10, TIMESTAMP '2025-11-19 12:00:00', 'Class', 3, TIMESTAMP '2025-11-19 09:00:00', 75.0),
+      (102, 26, TIMESTAMP '2025-11-19 17:00:00', 'Meeting', 3, TIMESTAMP '2025-11-19 14:00:00', 56.0),
+      (103, 24, TIMESTAMP '2025-11-19 12:00:00', 'Class', 4, TIMESTAMP '2025-11-19 09:00:00', 83.0),
+      (104, 31, TIMESTAMP '2025-11-19 12:00:00', 'Class', 5, TIMESTAMP '2025-11-19 09:00:00', 61.0),
+      (105, 32, TIMESTAMP '2025-11-19 12:00:00', 'Class', 6, TIMESTAMP '2025-11-19 09:00:00', 90.0),
+      (106, 10, TIMESTAMP '2025-11-19 17:00:00', 'Class', 6, TIMESTAMP '2025-11-19 14:00:00', 61.0),
+      (107, 13, TIMESTAMP '2025-11-18 12:00:00', 'Class', 1, TIMESTAMP '2025-11-18 09:00:00', 69.0),
+      (108, 11, TIMESTAMP '2025-11-18 17:00:00', 'Meeting', 1, TIMESTAMP '2025-11-18 14:00:00', 56.0),
+      (109, 26, TIMESTAMP '2025-11-18 12:00:00', 'Class', 2, TIMESTAMP '2025-11-18 09:00:00', 81.0),
+      (110, 9, TIMESTAMP '2025-11-18 17:00:00', 'Class', 2, TIMESTAMP '2025-11-18 14:00:00', 78.0),
+      (111, 32, TIMESTAMP '2025-11-18 12:00:00', 'Class', 3, TIMESTAMP '2025-11-18 09:00:00', 79.0),
+      (112, 18, TIMESTAMP '2025-11-18 17:00:00', 'Class', 3, TIMESTAMP '2025-11-18 14:00:00', 51.0),
+      (113, 33, TIMESTAMP '2025-11-18 12:00:00', 'Class', 4, TIMESTAMP '2025-11-18 09:00:00', 70.0),
+      (114, 12, TIMESTAMP '2025-11-18 12:00:00', 'Class', 5, TIMESTAMP '2025-11-18 09:00:00', 91.0),
+      (115, 21, TIMESTAMP '2025-11-18 12:00:00', 'Class', 6, TIMESTAMP '2025-11-18 09:00:00', 88.0),
+      (116, 21, TIMESTAMP '2025-11-18 17:00:00', 'Class', 6, TIMESTAMP '2025-11-18 14:00:00', 57.0),
+      (117, 11, TIMESTAMP '2025-11-17 12:00:00', 'Class', 1, TIMESTAMP '2025-11-17 09:00:00', 61.0),
+      (118, 28, TIMESTAMP '2025-11-17 17:00:00', 'Class', 1, TIMESTAMP '2025-11-17 14:00:00', 53.0),
+      (119, 30, TIMESTAMP '2025-11-17 12:00:00', 'Class', 2, TIMESTAMP '2025-11-17 09:00:00', 90.0),
+      (120, 27, TIMESTAMP '2025-11-17 17:00:00', 'Meeting', 2, TIMESTAMP '2025-11-17 14:00:00', 66.0),
+      (121, 28, TIMESTAMP '2025-11-17 12:00:00', 'Class', 3, TIMESTAMP '2025-11-17 09:00:00', 77.0),
+      (122, 11, TIMESTAMP '2025-11-17 17:00:00', 'Class', 3, TIMESTAMP '2025-11-17 14:00:00', 69.0),
+      (123, 15, TIMESTAMP '2025-11-17 12:00:00', 'Class', 4, TIMESTAMP '2025-11-17 09:00:00', 74.0),
+      (124, 8, TIMESTAMP '2025-11-17 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-17 14:00:00', 77.0),
+      (125, 27, TIMESTAMP '2025-11-17 12:00:00', 'Class', 5, TIMESTAMP '2025-11-17 09:00:00', 60.0),
+      (126, 12, TIMESTAMP '2025-11-17 17:00:00', 'Class', 5, TIMESTAMP '2025-11-17 14:00:00', 67.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (127, 33, TIMESTAMP '2025-11-17 12:00:00', 'Class', 6, TIMESTAMP '2025-11-17 09:00:00', 61.0),
+      (128, 13, TIMESTAMP '2025-11-17 17:00:00', 'Meeting', 6, TIMESTAMP '2025-11-17 14:00:00', 68.0),
+      (129, 22, TIMESTAMP '2025-11-16 12:00:00', 'Class', 1, TIMESTAMP '2025-11-16 09:00:00', 93.0),
+      (130, 16, TIMESTAMP '2025-11-16 12:00:00', 'Class', 2, TIMESTAMP '2025-11-16 09:00:00', 83.0),
+      (131, 31, TIMESTAMP '2025-11-16 12:00:00', 'Class', 3, TIMESTAMP '2025-11-16 09:00:00', 62.0),
+      (132, 11, TIMESTAMP '2025-11-16 17:00:00', 'Class', 3, TIMESTAMP '2025-11-16 14:00:00', 66.0),
+      (133, 27, TIMESTAMP '2025-11-16 12:00:00', 'Class', 4, TIMESTAMP '2025-11-16 09:00:00', 71.0),
+      (134, 28, TIMESTAMP '2025-11-16 12:00:00', 'Class', 5, TIMESTAMP '2025-11-16 09:00:00', 74.0),
+      (135, 25, TIMESTAMP '2025-11-16 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-16 14:00:00', 84.0),
+      (136, 23, TIMESTAMP '2025-11-16 12:00:00', 'Class', 6, TIMESTAMP '2025-11-16 09:00:00', 67.0),
+      (137, 28, TIMESTAMP '2025-11-15 12:00:00', 'Class', 1, TIMESTAMP '2025-11-15 09:00:00', 80.0),
+      (138, 24, TIMESTAMP '2025-11-15 17:00:00', 'Class', 1, TIMESTAMP '2025-11-15 14:00:00', 56.0),
+      (139, 19, TIMESTAMP '2025-11-15 12:00:00', 'Class', 2, TIMESTAMP '2025-11-15 09:00:00', 76.0),
+      (140, 23, TIMESTAMP '2025-11-15 17:00:00', 'Class', 2, TIMESTAMP '2025-11-15 14:00:00', 50.0),
+      (141, 22, TIMESTAMP '2025-11-15 12:00:00', 'Class', 3, TIMESTAMP '2025-11-15 09:00:00', 93.0),
+      (142, 28, TIMESTAMP '2025-11-15 12:00:00', 'Class', 4, TIMESTAMP '2025-11-15 09:00:00', 66.0),
+      (143, 21, TIMESTAMP '2025-11-15 17:00:00', 'Class', 4, TIMESTAMP '2025-11-15 14:00:00', 75.0),
+      (144, 33, TIMESTAMP '2025-11-15 12:00:00', 'Class', 5, TIMESTAMP '2025-11-15 09:00:00', 78.0),
+      (145, 21, TIMESTAMP '2025-11-15 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-15 14:00:00', 75.0),
+      (146, 31, TIMESTAMP '2025-11-15 12:00:00', 'Class', 6, TIMESTAMP '2025-11-15 09:00:00', 75.0),
+      (147, 21, TIMESTAMP '2025-11-15 17:00:00', 'Class', 6, TIMESTAMP '2025-11-15 14:00:00', 80.0),
+      (148, 19, TIMESTAMP '2025-11-14 12:00:00', 'Class', 1, TIMESTAMP '2025-11-14 09:00:00', 78.0),
+      (149, 17, TIMESTAMP '2025-11-14 17:00:00', 'Meeting', 1, TIMESTAMP '2025-11-14 14:00:00', 54.0),
+      (150, 32, TIMESTAMP '2025-11-14 12:00:00', 'Class', 2, TIMESTAMP '2025-11-14 09:00:00', 88.0),
+      (151, 33, TIMESTAMP '2025-11-14 12:00:00', 'Class', 3, TIMESTAMP '2025-11-14 09:00:00', 94.0),
+      (152, 30, TIMESTAMP '2025-11-14 12:00:00', 'Class', 4, TIMESTAMP '2025-11-14 09:00:00', 68.0),
+      (153, 17, TIMESTAMP '2025-11-14 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-14 14:00:00', 82.0),
+      (154, 28, TIMESTAMP '2025-11-14 12:00:00', 'Class', 5, TIMESTAMP '2025-11-14 09:00:00', 92.0),
+      (155, 33, TIMESTAMP '2025-11-14 12:00:00', 'Class', 6, TIMESTAMP '2025-11-14 09:00:00', 87.0),
+      (156, 26, TIMESTAMP '2025-11-14 17:00:00', 'Meeting', 6, TIMESTAMP '2025-11-14 14:00:00', 81.0),
+      (157, 23, TIMESTAMP '2025-11-13 12:00:00', 'Class', 1, TIMESTAMP '2025-11-13 09:00:00', 77.0),
+      (158, 17, TIMESTAMP '2025-11-13 17:00:00', 'Meeting', 1, TIMESTAMP '2025-11-13 14:00:00', 78.0),
+      (159, 16, TIMESTAMP '2025-11-13 12:00:00', 'Class', 2, TIMESTAMP '2025-11-13 09:00:00', 64.0),
+      (160, 22, TIMESTAMP '2025-11-13 17:00:00', 'Meeting', 2, TIMESTAMP '2025-11-13 14:00:00', 53.0),
+      (161, 10, TIMESTAMP '2025-11-13 12:00:00', 'Class', 3, TIMESTAMP '2025-11-13 09:00:00', 85.0),
+      (162, 28, TIMESTAMP '2025-11-13 12:00:00', 'Class', 4, TIMESTAMP '2025-11-13 09:00:00', 94.0),
+      (163, 27, TIMESTAMP '2025-11-13 12:00:00', 'Class', 5, TIMESTAMP '2025-11-13 09:00:00', 88.0),
+      (164, 14, TIMESTAMP '2025-11-13 12:00:00', 'Class', 6, TIMESTAMP '2025-11-13 09:00:00', 75.0),
+      (165, 12, TIMESTAMP '2025-11-13 17:00:00', 'Class', 6, TIMESTAMP '2025-11-13 14:00:00', 51.0),
+      (166, 12, TIMESTAMP '2025-11-12 12:00:00', 'Class', 1, TIMESTAMP '2025-11-12 09:00:00', 74.0),
+      (167, 10, TIMESTAMP '2025-11-12 12:00:00', 'Class', 2, TIMESTAMP '2025-11-12 09:00:00', 81.0),
+      (168, 17, TIMESTAMP '2025-11-12 12:00:00', 'Class', 3, TIMESTAMP '2025-11-12 09:00:00', 72.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (169, 27, TIMESTAMP '2025-11-12 17:00:00', 'Class', 3, TIMESTAMP '2025-11-12 14:00:00', 85.0),
+      (170, 34, TIMESTAMP '2025-11-12 12:00:00', 'Class', 4, TIMESTAMP '2025-11-12 09:00:00', 79.0),
+      (171, 8, TIMESTAMP '2025-11-12 17:00:00', 'Class', 4, TIMESTAMP '2025-11-12 14:00:00', 80.0),
+      (172, 27, TIMESTAMP '2025-11-12 12:00:00', 'Class', 5, TIMESTAMP '2025-11-12 09:00:00', 86.0),
+      (173, 28, TIMESTAMP '2025-11-12 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-12 14:00:00', 81.0),
+      (174, 22, TIMESTAMP '2025-11-12 12:00:00', 'Class', 6, TIMESTAMP '2025-11-12 09:00:00', 63.0),
+      (175, 27, TIMESTAMP '2025-11-12 17:00:00', 'Class', 6, TIMESTAMP '2025-11-12 14:00:00', 51.0),
+      (176, 26, TIMESTAMP '2025-11-11 12:00:00', 'Class', 1, TIMESTAMP '2025-11-11 09:00:00', 67.0),
+      (177, 22, TIMESTAMP '2025-11-11 17:00:00', 'Meeting', 1, TIMESTAMP '2025-11-11 14:00:00', 78.0),
+      (178, 26, TIMESTAMP '2025-11-11 12:00:00', 'Class', 2, TIMESTAMP '2025-11-11 09:00:00', 81.0),
+      (179, 12, TIMESTAMP '2025-11-11 12:00:00', 'Class', 3, TIMESTAMP '2025-11-11 09:00:00', 84.0),
+      (180, 17, TIMESTAMP '2025-11-11 17:00:00', 'Class', 3, TIMESTAMP '2025-11-11 14:00:00', 68.0),
+      (181, 26, TIMESTAMP '2025-11-11 12:00:00', 'Class', 4, TIMESTAMP '2025-11-11 09:00:00', 86.0),
+      (182, 26, TIMESTAMP '2025-11-11 17:00:00', 'Meeting', 4, TIMESTAMP '2025-11-11 14:00:00', 77.0),
+      (183, 24, TIMESTAMP '2025-11-11 12:00:00', 'Class', 5, TIMESTAMP '2025-11-11 09:00:00', 77.0),
+      (184, 26, TIMESTAMP '2025-11-11 17:00:00', 'Meeting', 5, TIMESTAMP '2025-11-11 14:00:00', 57.0),
+      (185, 34, TIMESTAMP '2025-11-11 12:00:00', 'Class', 6, TIMESTAMP '2025-11-11 09:00:00', 78.0),
+      (186, 22, TIMESTAMP '2025-11-11 17:00:00', 'Class', 6, TIMESTAMP '2025-11-11 14:00:00', 89.0),
+      (187, 16, TIMESTAMP '2025-10-30 12:00:00', 'Class', 1, TIMESTAMP '2025-10-30 09:00:00', 66.0),
+      (188, 21, TIMESTAMP '2025-10-30 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-30 14:00:00', 66.0),
+      (189, 19, TIMESTAMP '2025-10-30 12:00:00', 'Class', 2, TIMESTAMP '2025-10-30 09:00:00', 73.0),
+      (190, 9, TIMESTAMP '2025-10-30 17:00:00', 'Class', 2, TIMESTAMP '2025-10-30 14:00:00', 51.0),
+      (191, 31, TIMESTAMP '2025-10-30 12:00:00', 'Class', 3, TIMESTAMP '2025-10-30 09:00:00', 77.0),
+      (192, 14, TIMESTAMP '2025-10-30 17:00:00', 'Class', 3, TIMESTAMP '2025-10-30 14:00:00', 64.0),
+      (193, 11, TIMESTAMP '2025-10-30 12:00:00', 'Class', 4, TIMESTAMP '2025-10-30 09:00:00', 61.0),
+      (194, 15, TIMESTAMP '2025-10-30 17:00:00', 'Meeting', 4, TIMESTAMP '2025-10-30 14:00:00', 78.0),
+      (195, 14, TIMESTAMP '2025-10-30 12:00:00', 'Class', 5, TIMESTAMP '2025-10-30 09:00:00', 89.0),
+      (196, 23, TIMESTAMP '2025-10-30 12:00:00', 'Class', 6, TIMESTAMP '2025-10-30 09:00:00', 84.0),
+      (197, 12, TIMESTAMP '2025-10-30 17:00:00', 'Class', 6, TIMESTAMP '2025-10-30 14:00:00', 60.0),
+      (198, 18, TIMESTAMP '2025-10-29 12:00:00', 'Class', 1, TIMESTAMP '2025-10-29 09:00:00', 65.0),
+      (199, 14, TIMESTAMP '2025-10-29 12:00:00', 'Class', 2, TIMESTAMP '2025-10-29 09:00:00', 62.0),
+      (200, 26, TIMESTAMP '2025-10-29 17:00:00', 'Class', 2, TIMESTAMP '2025-10-29 14:00:00', 80.0),
+      (201, 23, TIMESTAMP '2025-10-29 12:00:00', 'Class', 3, TIMESTAMP '2025-10-29 09:00:00', 78.0),
+      (202, 11, TIMESTAMP '2025-10-29 12:00:00', 'Class', 4, TIMESTAMP '2025-10-29 09:00:00', 94.0),
+      (203, 30, TIMESTAMP '2025-10-29 12:00:00', 'Class', 5, TIMESTAMP '2025-10-29 09:00:00', 83.0),
+      (204, 13, TIMESTAMP '2025-10-29 12:00:00', 'Class', 6, TIMESTAMP '2025-10-29 09:00:00', 81.0),
+      (205, 24, TIMESTAMP '2025-10-29 17:00:00', 'Class', 6, TIMESTAMP '2025-10-29 14:00:00', 54.0),
+      (206, 25, TIMESTAMP '2025-10-28 12:00:00', 'Class', 1, TIMESTAMP '2025-10-28 09:00:00', 74.0),
+      (207, 17, TIMESTAMP '2025-10-28 17:00:00', 'Class', 1, TIMESTAMP '2025-10-28 14:00:00', 77.0),
+      (208, 11, TIMESTAMP '2025-10-28 12:00:00', 'Class', 2, TIMESTAMP '2025-10-28 09:00:00', 90.0),
+      (209, 25, TIMESTAMP '2025-10-28 17:00:00', 'Class', 2, TIMESTAMP '2025-10-28 14:00:00', 64.0),
+      (210, 28, TIMESTAMP '2025-10-28 12:00:00', 'Class', 3, TIMESTAMP '2025-10-28 09:00:00', 65.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (211, 32, TIMESTAMP '2025-10-28 12:00:00', 'Class', 4, TIMESTAMP '2025-10-28 09:00:00', 68.0),
+      (212, 21, TIMESTAMP '2025-10-28 12:00:00', 'Class', 5, TIMESTAMP '2025-10-28 09:00:00', 88.0),
+      (213, 29, TIMESTAMP '2025-10-28 12:00:00', 'Class', 6, TIMESTAMP '2025-10-28 09:00:00', 65.0),
+      (214, 18, TIMESTAMP '2025-10-27 12:00:00', 'Class', 1, TIMESTAMP '2025-10-27 09:00:00', 85.0),
+      (215, 16, TIMESTAMP '2025-10-27 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-27 14:00:00', 83.0),
+      (216, 31, TIMESTAMP '2025-10-27 12:00:00', 'Class', 2, TIMESTAMP '2025-10-27 09:00:00', 80.0),
+      (217, 19, TIMESTAMP '2025-10-27 17:00:00', 'Class', 2, TIMESTAMP '2025-10-27 14:00:00', 75.0),
+      (218, 10, TIMESTAMP '2025-10-27 12:00:00', 'Class', 3, TIMESTAMP '2025-10-27 09:00:00', 74.0),
+      (219, 11, TIMESTAMP '2025-10-27 12:00:00', 'Class', 4, TIMESTAMP '2025-10-27 09:00:00', 76.0),
+      (220, 29, TIMESTAMP '2025-10-27 12:00:00', 'Class', 5, TIMESTAMP '2025-10-27 09:00:00', 68.0),
+      (221, 14, TIMESTAMP '2025-10-27 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-27 14:00:00', 70.0),
+      (222, 32, TIMESTAMP '2025-10-27 12:00:00', 'Class', 6, TIMESTAMP '2025-10-27 09:00:00', 68.0),
+      (223, 25, TIMESTAMP '2025-10-27 17:00:00', 'Meeting', 6, TIMESTAMP '2025-10-27 14:00:00', 53.0),
+      (224, 23, TIMESTAMP '2025-10-26 12:00:00', 'Class', 1, TIMESTAMP '2025-10-26 09:00:00', 88.0),
+      (225, 20, TIMESTAMP '2025-10-26 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-26 14:00:00', 54.0),
+      (226, 26, TIMESTAMP '2025-10-26 12:00:00', 'Class', 2, TIMESTAMP '2025-10-26 09:00:00', 83.0),
+      (227, 17, TIMESTAMP '2025-10-26 12:00:00', 'Class', 3, TIMESTAMP '2025-10-26 09:00:00', 92.0),
+      (228, 13, TIMESTAMP '2025-10-26 12:00:00', 'Class', 4, TIMESTAMP '2025-10-26 09:00:00', 66.0),
+      (229, 13, TIMESTAMP '2025-10-26 12:00:00', 'Class', 5, TIMESTAMP '2025-10-26 09:00:00', 91.0),
+      (230, 10, TIMESTAMP '2025-10-26 12:00:00', 'Class', 6, TIMESTAMP '2025-10-26 09:00:00', 73.0),
+      (231, 27, TIMESTAMP '2025-10-26 17:00:00', 'Meeting', 6, TIMESTAMP '2025-10-26 14:00:00', 85.0),
+      (232, 19, TIMESTAMP '2025-10-25 12:00:00', 'Class', 1, TIMESTAMP '2025-10-25 09:00:00', 61.0),
+      (233, 23, TIMESTAMP '2025-10-25 12:00:00', 'Class', 2, TIMESTAMP '2025-10-25 09:00:00', 77.0),
+      (234, 22, TIMESTAMP '2025-10-25 12:00:00', 'Class', 3, TIMESTAMP '2025-10-25 09:00:00', 62.0),
+      (235, 10, TIMESTAMP '2025-10-25 17:00:00', 'Class', 3, TIMESTAMP '2025-10-25 14:00:00', 79.0),
+      (236, 19, TIMESTAMP '2025-10-25 12:00:00', 'Class', 4, TIMESTAMP '2025-10-25 09:00:00', 74.0),
+      (237, 18, TIMESTAMP '2025-10-25 17:00:00', 'Class', 4, TIMESTAMP '2025-10-25 14:00:00', 82.0),
+      (238, 32, TIMESTAMP '2025-10-25 12:00:00', 'Class', 5, TIMESTAMP '2025-10-25 09:00:00', 76.0),
+      (239, 20, TIMESTAMP '2025-10-25 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-25 14:00:00', 85.0),
+      (240, 33, TIMESTAMP '2025-10-25 12:00:00', 'Class', 6, TIMESTAMP '2025-10-25 09:00:00', 86.0),
+      (241, 19, TIMESTAMP '2025-10-25 17:00:00', 'Class', 6, TIMESTAMP '2025-10-25 14:00:00', 85.0),
+      (242, 28, TIMESTAMP '2025-10-24 12:00:00', 'Class', 1, TIMESTAMP '2025-10-24 09:00:00', 83.0),
+      (243, 19, TIMESTAMP '2025-10-24 12:00:00', 'Class', 2, TIMESTAMP '2025-10-24 09:00:00', 67.0),
+      (244, 18, TIMESTAMP '2025-10-24 17:00:00', 'Meeting', 2, TIMESTAMP '2025-10-24 14:00:00', 56.0),
+      (245, 33, TIMESTAMP '2025-10-24 12:00:00', 'Class', 3, TIMESTAMP '2025-10-24 09:00:00', 88.0),
+      (246, 25, TIMESTAMP '2025-10-24 12:00:00', 'Class', 4, TIMESTAMP '2025-10-24 09:00:00', 60.0),
+      (247, 26, TIMESTAMP '2025-10-24 17:00:00', 'Class', 4, TIMESTAMP '2025-10-24 14:00:00', 68.0),
+      (248, 22, TIMESTAMP '2025-10-24 12:00:00', 'Class', 5, TIMESTAMP '2025-10-24 09:00:00', 79.0),
+      (249, 23, TIMESTAMP '2025-10-24 12:00:00', 'Class', 6, TIMESTAMP '2025-10-24 09:00:00', 60.0),
+      (250, 24, TIMESTAMP '2025-10-23 12:00:00', 'Class', 1, TIMESTAMP '2025-10-23 09:00:00', 88.0),
+      (251, 29, TIMESTAMP '2025-10-23 12:00:00', 'Class', 2, TIMESTAMP '2025-10-23 09:00:00', 81.0),
+      (252, 22, TIMESTAMP '2025-10-23 12:00:00', 'Class', 3, TIMESTAMP '2025-10-23 09:00:00', 93.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (253, 16, TIMESTAMP '2025-10-23 17:00:00', 'Class', 3, TIMESTAMP '2025-10-23 14:00:00', 62.0),
+      (254, 34, TIMESTAMP '2025-10-23 12:00:00', 'Class', 4, TIMESTAMP '2025-10-23 09:00:00', 94.0),
+      (255, 15, TIMESTAMP '2025-10-23 17:00:00', 'Meeting', 4, TIMESTAMP '2025-10-23 14:00:00', 62.0),
+      (256, 26, TIMESTAMP '2025-10-23 12:00:00', 'Class', 5, TIMESTAMP '2025-10-23 09:00:00', 92.0),
+      (257, 20, TIMESTAMP '2025-10-23 12:00:00', 'Class', 6, TIMESTAMP '2025-10-23 09:00:00', 93.0),
+      (258, 22, TIMESTAMP '2025-10-23 17:00:00', 'Meeting', 6, TIMESTAMP '2025-10-23 14:00:00', 50.0),
+      (259, 31, TIMESTAMP '2025-10-22 12:00:00', 'Class', 1, TIMESTAMP '2025-10-22 09:00:00', 61.0),
+      (260, 28, TIMESTAMP '2025-10-22 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-22 14:00:00', 76.0),
+      (261, 15, TIMESTAMP '2025-10-22 12:00:00', 'Class', 2, TIMESTAMP '2025-10-22 09:00:00', 87.0),
+      (262, 10, TIMESTAMP '2025-10-22 17:00:00', 'Class', 2, TIMESTAMP '2025-10-22 14:00:00', 70.0),
+      (263, 20, TIMESTAMP '2025-10-22 12:00:00', 'Class', 3, TIMESTAMP '2025-10-22 09:00:00', 76.0),
+      (264, 24, TIMESTAMP '2025-10-22 12:00:00', 'Class', 4, TIMESTAMP '2025-10-22 09:00:00', 67.0),
+      (265, 32, TIMESTAMP '2025-10-22 12:00:00', 'Class', 5, TIMESTAMP '2025-10-22 09:00:00', 90.0),
+      (266, 16, TIMESTAMP '2025-10-22 12:00:00', 'Class', 6, TIMESTAMP '2025-10-22 09:00:00', 66.0),
+      (267, 26, TIMESTAMP '2025-10-21 12:00:00', 'Class', 1, TIMESTAMP '2025-10-21 09:00:00', 91.0),
+      (268, 27, TIMESTAMP '2025-10-21 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-21 14:00:00', 84.0),
+      (269, 28, TIMESTAMP '2025-10-21 12:00:00', 'Class', 2, TIMESTAMP '2025-10-21 09:00:00', 63.0),
+      (270, 28, TIMESTAMP '2025-10-21 12:00:00', 'Class', 3, TIMESTAMP '2025-10-21 09:00:00', 81.0),
+      (271, 12, TIMESTAMP '2025-10-21 12:00:00', 'Class', 4, TIMESTAMP '2025-10-21 09:00:00', 76.0),
+      (272, 22, TIMESTAMP '2025-10-21 17:00:00', 'Class', 4, TIMESTAMP '2025-10-21 14:00:00', 57.0),
+      (273, 30, TIMESTAMP '2025-10-21 12:00:00', 'Class', 5, TIMESTAMP '2025-10-21 09:00:00', 66.0),
+      (274, 25, TIMESTAMP '2025-10-21 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-21 14:00:00', 68.0),
+      (275, 29, TIMESTAMP '2025-10-21 12:00:00', 'Class', 6, TIMESTAMP '2025-10-21 09:00:00', 89.0),
+      (276, 22, TIMESTAMP '2025-10-20 12:00:00', 'Class', 1, TIMESTAMP '2025-10-20 09:00:00', 87.0),
+      (277, 12, TIMESTAMP '2025-10-20 17:00:00', 'Class', 1, TIMESTAMP '2025-10-20 14:00:00', 84.0),
+      (278, 26, TIMESTAMP '2025-10-20 12:00:00', 'Class', 2, TIMESTAMP '2025-10-20 09:00:00', 69.0),
+      (279, 21, TIMESTAMP '2025-10-20 17:00:00', 'Meeting', 2, TIMESTAMP '2025-10-20 14:00:00', 75.0),
+      (280, 22, TIMESTAMP '2025-10-20 12:00:00', 'Class', 3, TIMESTAMP '2025-10-20 09:00:00', 72.0),
+      (281, 34, TIMESTAMP '2025-10-20 12:00:00', 'Class', 4, TIMESTAMP '2025-10-20 09:00:00', 83.0),
+      (282, 33, TIMESTAMP '2025-10-20 12:00:00', 'Class', 5, TIMESTAMP '2025-10-20 09:00:00', 77.0),
+      (283, 20, TIMESTAMP '2025-10-20 12:00:00', 'Class', 6, TIMESTAMP '2025-10-20 09:00:00', 68.0),
+      (284, 20, TIMESTAMP '2025-10-20 17:00:00', 'Class', 6, TIMESTAMP '2025-10-20 14:00:00', 89.0),
+      (285, 15, TIMESTAMP '2025-10-19 12:00:00', 'Class', 1, TIMESTAMP '2025-10-19 09:00:00', 90.0),
+      (286, 25, TIMESTAMP '2025-10-19 12:00:00', 'Class', 2, TIMESTAMP '2025-10-19 09:00:00', 63.0),
+      (287, 11, TIMESTAMP '2025-10-19 17:00:00', 'Meeting', 2, TIMESTAMP '2025-10-19 14:00:00', 62.0),
+      (288, 18, TIMESTAMP '2025-10-19 12:00:00', 'Class', 3, TIMESTAMP '2025-10-19 09:00:00', 77.0),
+      (289, 11, TIMESTAMP '2025-10-19 12:00:00', 'Class', 4, TIMESTAMP '2025-10-19 09:00:00', 74.0),
+      (290, 28, TIMESTAMP '2025-10-19 17:00:00', 'Meeting', 4, TIMESTAMP '2025-10-19 14:00:00', 67.0),
+      (291, 23, TIMESTAMP '2025-10-19 12:00:00', 'Class', 5, TIMESTAMP '2025-10-19 09:00:00', 71.0),
+      (292, 29, TIMESTAMP '2025-10-19 12:00:00', 'Class', 6, TIMESTAMP '2025-10-19 09:00:00', 88.0),
+      (293, 25, TIMESTAMP '2025-10-18 12:00:00', 'Class', 1, TIMESTAMP '2025-10-18 09:00:00', 90.0),
+      (294, 29, TIMESTAMP '2025-10-18 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-18 14:00:00', 72.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (295, 11, TIMESTAMP '2025-10-18 12:00:00', 'Class', 2, TIMESTAMP '2025-10-18 09:00:00', 82.0),
+      (296, 27, TIMESTAMP '2025-10-18 17:00:00', 'Class', 2, TIMESTAMP '2025-10-18 14:00:00', 66.0),
+      (297, 25, TIMESTAMP '2025-10-18 12:00:00', 'Class', 3, TIMESTAMP '2025-10-18 09:00:00', 94.0),
+      (298, 15, TIMESTAMP '2025-10-18 17:00:00', 'Class', 3, TIMESTAMP '2025-10-18 14:00:00', 55.0),
+      (299, 16, TIMESTAMP '2025-10-18 12:00:00', 'Class', 4, TIMESTAMP '2025-10-18 09:00:00', 83.0),
+      (300, 26, TIMESTAMP '2025-10-18 17:00:00', 'Class', 4, TIMESTAMP '2025-10-18 14:00:00', 53.0),
+      (301, 24, TIMESTAMP '2025-10-18 12:00:00', 'Class', 5, TIMESTAMP '2025-10-18 09:00:00', 77.0),
+      (302, 23, TIMESTAMP '2025-10-18 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-18 14:00:00', 54.0),
+      (303, 13, TIMESTAMP '2025-10-18 12:00:00', 'Class', 6, TIMESTAMP '2025-10-18 09:00:00', 75.0),
+      (304, 10, TIMESTAMP '2025-10-18 17:00:00', 'Class', 6, TIMESTAMP '2025-10-18 14:00:00', 59.0),
+      (305, 34, TIMESTAMP '2025-10-17 12:00:00', 'Class', 1, TIMESTAMP '2025-10-17 09:00:00', 66.0),
+      (306, 24, TIMESTAMP '2025-10-17 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-17 14:00:00', 85.0),
+      (307, 29, TIMESTAMP '2025-10-17 12:00:00', 'Class', 2, TIMESTAMP '2025-10-17 09:00:00', 66.0),
+      (308, 29, TIMESTAMP '2025-10-17 12:00:00', 'Class', 3, TIMESTAMP '2025-10-17 09:00:00', 71.0),
+      (309, 12, TIMESTAMP '2025-10-17 17:00:00', 'Meeting', 3, TIMESTAMP '2025-10-17 14:00:00', 87.0),
+      (310, 27, TIMESTAMP '2025-10-17 12:00:00', 'Class', 4, TIMESTAMP '2025-10-17 09:00:00', 77.0),
+      (311, 16, TIMESTAMP '2025-10-17 17:00:00', 'Class', 4, TIMESTAMP '2025-10-17 14:00:00', 50.0),
+      (312, 16, TIMESTAMP '2025-10-17 12:00:00', 'Class', 5, TIMESTAMP '2025-10-17 09:00:00', 73.0),
+      (313, 19, TIMESTAMP '2025-10-17 12:00:00', 'Class', 6, TIMESTAMP '2025-10-17 09:00:00', 73.0),
+      (314, 12, TIMESTAMP '2025-10-16 12:00:00', 'Class', 1, TIMESTAMP '2025-10-16 09:00:00', 85.0),
+      (315, 15, TIMESTAMP '2025-10-16 17:00:00', 'Class', 1, TIMESTAMP '2025-10-16 14:00:00', 50.0),
+      (316, 34, TIMESTAMP '2025-10-16 12:00:00', 'Class', 2, TIMESTAMP '2025-10-16 09:00:00', 72.0),
+      (317, 29, TIMESTAMP '2025-10-16 17:00:00', 'Class', 2, TIMESTAMP '2025-10-16 14:00:00', 67.0),
+      (318, 17, TIMESTAMP '2025-10-16 12:00:00', 'Class', 3, TIMESTAMP '2025-10-16 09:00:00', 62.0),
+      (319, 12, TIMESTAMP '2025-10-16 12:00:00', 'Class', 4, TIMESTAMP '2025-10-16 09:00:00', 88.0),
+      (320, 10, TIMESTAMP '2025-10-16 17:00:00', 'Class', 4, TIMESTAMP '2025-10-16 14:00:00', 83.0),
+      (321, 13, TIMESTAMP '2025-10-16 12:00:00', 'Class', 5, TIMESTAMP '2025-10-16 09:00:00', 75.0),
+      (322, 33, TIMESTAMP '2025-10-16 12:00:00', 'Class', 6, TIMESTAMP '2025-10-16 09:00:00', 85.0),
+      (323, 13, TIMESTAMP '2025-10-16 17:00:00', 'Class', 6, TIMESTAMP '2025-10-16 14:00:00', 82.0),
+      (324, 23, TIMESTAMP '2025-10-15 12:00:00', 'Class', 1, TIMESTAMP '2025-10-15 09:00:00', 73.0),
+      (325, 17, TIMESTAMP '2025-10-15 12:00:00', 'Class', 2, TIMESTAMP '2025-10-15 09:00:00', 83.0),
+      (326, 29, TIMESTAMP '2025-10-15 17:00:00', 'Class', 2, TIMESTAMP '2025-10-15 14:00:00', 83.0),
+      (327, 11, TIMESTAMP '2025-10-15 12:00:00', 'Class', 3, TIMESTAMP '2025-10-15 09:00:00', 69.0),
+      (328, 29, TIMESTAMP '2025-10-15 12:00:00', 'Class', 4, TIMESTAMP '2025-10-15 09:00:00', 85.0),
+      (329, 27, TIMESTAMP '2025-10-15 12:00:00', 'Class', 5, TIMESTAMP '2025-10-15 09:00:00', 63.0),
+      (330, 18, TIMESTAMP '2025-10-15 12:00:00', 'Class', 6, TIMESTAMP '2025-10-15 09:00:00', 64.0),
+      (331, 20, TIMESTAMP '2025-10-14 12:00:00', 'Class', 1, TIMESTAMP '2025-10-14 09:00:00', 68.0),
+      (332, 28, TIMESTAMP '2025-10-14 12:00:00', 'Class', 2, TIMESTAMP '2025-10-14 09:00:00', 93.0),
+      (333, 8, TIMESTAMP '2025-10-14 17:00:00', 'Class', 2, TIMESTAMP '2025-10-14 14:00:00', 80.0),
+      (334, 30, TIMESTAMP '2025-10-14 12:00:00', 'Class', 3, TIMESTAMP '2025-10-14 09:00:00', 85.0),
+      (335, 19, TIMESTAMP '2025-10-14 12:00:00', 'Class', 4, TIMESTAMP '2025-10-14 09:00:00', 76.0),
+      (336, 20, TIMESTAMP '2025-10-14 17:00:00', 'Meeting', 4, TIMESTAMP '2025-10-14 14:00:00', 65.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (337, 15, TIMESTAMP '2025-10-14 12:00:00', 'Class', 5, TIMESTAMP '2025-10-14 09:00:00', 65.0),
+      (338, 15, TIMESTAMP '2025-10-14 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-14 14:00:00', 58.0),
+      (339, 34, TIMESTAMP '2025-10-14 12:00:00', 'Class', 6, TIMESTAMP '2025-10-14 09:00:00', 73.0),
+      (340, 34, TIMESTAMP '2025-10-13 12:00:00', 'Class', 1, TIMESTAMP '2025-10-13 09:00:00', 67.0),
+      (341, 22, TIMESTAMP '2025-10-13 12:00:00', 'Class', 2, TIMESTAMP '2025-10-13 09:00:00', 91.0),
+      (342, 15, TIMESTAMP '2025-10-13 12:00:00', 'Class', 3, TIMESTAMP '2025-10-13 09:00:00', 63.0),
+      (343, 29, TIMESTAMP '2025-10-13 17:00:00', 'Class', 3, TIMESTAMP '2025-10-13 14:00:00', 79.0),
+      (344, 13, TIMESTAMP '2025-10-13 12:00:00', 'Class', 4, TIMESTAMP '2025-10-13 09:00:00', 92.0),
+      (345, 11, TIMESTAMP '2025-10-13 12:00:00', 'Class', 5, TIMESTAMP '2025-10-13 09:00:00', 68.0),
+      (346, 14, TIMESTAMP '2025-10-13 12:00:00', 'Class', 6, TIMESTAMP '2025-10-13 09:00:00', 73.0),
+      (347, 26, TIMESTAMP '2025-10-13 17:00:00', 'Meeting', 6, TIMESTAMP '2025-10-13 14:00:00', 53.0),
+      (348, 18, TIMESTAMP '2025-10-12 12:00:00', 'Class', 1, TIMESTAMP '2025-10-12 09:00:00', 63.0),
+      (349, 14, TIMESTAMP '2025-10-12 12:00:00', 'Class', 2, TIMESTAMP '2025-10-12 09:00:00', 63.0),
+      (350, 23, TIMESTAMP '2025-10-12 17:00:00', 'Class', 2, TIMESTAMP '2025-10-12 14:00:00', 72.0),
+      (351, 24, TIMESTAMP '2025-10-12 12:00:00', 'Class', 3, TIMESTAMP '2025-10-12 09:00:00', 61.0),
+      (352, 10, TIMESTAMP '2025-10-12 17:00:00', 'Meeting', 3, TIMESTAMP '2025-10-12 14:00:00', 83.0),
+      (353, 11, TIMESTAMP '2025-10-12 12:00:00', 'Class', 4, TIMESTAMP '2025-10-12 09:00:00', 64.0),
+      (354, 29, TIMESTAMP '2025-10-12 17:00:00', 'Class', 4, TIMESTAMP '2025-10-12 14:00:00', 69.0),
+      (355, 26, TIMESTAMP '2025-10-12 12:00:00', 'Class', 5, TIMESTAMP '2025-10-12 09:00:00', 63.0),
+      (356, 16, TIMESTAMP '2025-10-12 17:00:00', 'Meeting', 5, TIMESTAMP '2025-10-12 14:00:00', 83.0),
+      (357, 27, TIMESTAMP '2025-10-12 12:00:00', 'Class', 6, TIMESTAMP '2025-10-12 09:00:00', 88.0),
+      (358, 21, TIMESTAMP '2025-10-11 12:00:00', 'Class', 1, TIMESTAMP '2025-10-11 09:00:00', 65.0),
+      (359, 20, TIMESTAMP '2025-10-11 17:00:00', 'Meeting', 1, TIMESTAMP '2025-10-11 14:00:00', 82.0),
+      (360, 24, TIMESTAMP '2025-10-11 12:00:00', 'Class', 2, TIMESTAMP '2025-10-11 09:00:00', 61.0),
+      (361, 8, TIMESTAMP '2025-10-11 17:00:00', 'Meeting', 2, TIMESTAMP '2025-10-11 14:00:00', 80.0),
+      (362, 13, TIMESTAMP '2025-10-11 12:00:00', 'Class', 3, TIMESTAMP '2025-10-11 09:00:00', 79.0),
+      (363, 29, TIMESTAMP '2025-10-11 12:00:00', 'Class', 4, TIMESTAMP '2025-10-11 09:00:00', 92.0),
+      (364, 26, TIMESTAMP '2025-10-11 12:00:00', 'Class', 5, TIMESTAMP '2025-10-11 09:00:00', 64.0),
+      (365, 27, TIMESTAMP '2025-10-11 17:00:00', 'Class', 5, TIMESTAMP '2025-10-11 14:00:00', 71.0),
+      (366, 24, TIMESTAMP '2025-10-11 12:00:00', 'Class', 6, TIMESTAMP '2025-10-11 09:00:00', 83.0),
+      (367, 25, TIMESTAMP '2025-10-11 17:00:00', 'Class', 6, TIMESTAMP '2025-10-11 14:00:00', 82.0),
+      (368, 18, TIMESTAMP '2025-09-30 12:00:00', 'Class', 1, TIMESTAMP '2025-09-30 09:00:00', 94.0),
+      (369, 24, TIMESTAMP '2025-09-30 12:00:00', 'Class', 2, TIMESTAMP '2025-09-30 09:00:00', 64.0),
+      (370, 13, TIMESTAMP '2025-09-30 12:00:00', 'Class', 3, TIMESTAMP '2025-09-30 09:00:00', 80.0),
+      (371, 8, TIMESTAMP '2025-09-30 17:00:00', 'Class', 3, TIMESTAMP '2025-09-30 14:00:00', 53.0),
+      (372, 18, TIMESTAMP '2025-09-30 12:00:00', 'Class', 4, TIMESTAMP '2025-09-30 09:00:00', 93.0),
+      (373, 23, TIMESTAMP '2025-09-30 17:00:00', 'Class', 4, TIMESTAMP '2025-09-30 14:00:00', 71.0),
+      (374, 18, TIMESTAMP '2025-09-30 12:00:00', 'Class', 5, TIMESTAMP '2025-09-30 09:00:00', 81.0),
+      (375, 27, TIMESTAMP '2025-09-30 17:00:00', 'Meeting', 5, TIMESTAMP '2025-09-30 14:00:00', 77.0),
+      (376, 28, TIMESTAMP '2025-09-30 12:00:00', 'Class', 6, TIMESTAMP '2025-09-30 09:00:00', 79.0),
+      (377, 19, TIMESTAMP '2025-09-30 17:00:00', 'Class', 6, TIMESTAMP '2025-09-30 14:00:00', 68.0),
+      (378, 29, TIMESTAMP '2025-09-29 12:00:00', 'Class', 1, TIMESTAMP '2025-09-29 09:00:00', 88.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (379, 12, TIMESTAMP '2025-09-29 17:00:00', 'Class', 1, TIMESTAMP '2025-09-29 14:00:00', 60.0),
+      (380, 30, TIMESTAMP '2025-09-29 12:00:00', 'Class', 2, TIMESTAMP '2025-09-29 09:00:00', 80.0),
+      (381, 29, TIMESTAMP '2025-09-29 17:00:00', 'Class', 2, TIMESTAMP '2025-09-29 14:00:00', 64.0),
+      (382, 29, TIMESTAMP '2025-09-29 12:00:00', 'Class', 3, TIMESTAMP '2025-09-29 09:00:00', 82.0),
+      (383, 13, TIMESTAMP '2025-09-29 12:00:00', 'Class', 4, TIMESTAMP '2025-09-29 09:00:00', 79.0),
+      (384, 15, TIMESTAMP '2025-09-29 12:00:00', 'Class', 5, TIMESTAMP '2025-09-29 09:00:00', 90.0),
+      (385, 18, TIMESTAMP '2025-09-29 17:00:00', 'Class', 5, TIMESTAMP '2025-09-29 14:00:00', 57.0),
+      (386, 21, TIMESTAMP '2025-09-29 12:00:00', 'Class', 6, TIMESTAMP '2025-09-29 09:00:00', 75.0),
+      (387, 16, TIMESTAMP '2025-09-28 12:00:00', 'Class', 1, TIMESTAMP '2025-09-28 09:00:00', 89.0),
+      (388, 25, TIMESTAMP '2025-09-28 12:00:00', 'Class', 2, TIMESTAMP '2025-09-28 09:00:00', 81.0),
+      (389, 27, TIMESTAMP '2025-09-28 12:00:00', 'Class', 3, TIMESTAMP '2025-09-28 09:00:00', 68.0),
+      (390, 31, TIMESTAMP '2025-09-28 12:00:00', 'Class', 4, TIMESTAMP '2025-09-28 09:00:00', 65.0),
+      (391, 9, TIMESTAMP '2025-09-28 17:00:00', 'Class', 4, TIMESTAMP '2025-09-28 14:00:00', 86.0),
+      (392, 12, TIMESTAMP '2025-09-28 12:00:00', 'Class', 5, TIMESTAMP '2025-09-28 09:00:00', 72.0),
+      (393, 34, TIMESTAMP '2025-09-28 12:00:00', 'Class', 6, TIMESTAMP '2025-09-28 09:00:00', 63.0),
+      (394, 9, TIMESTAMP '2025-09-28 17:00:00', 'Class', 6, TIMESTAMP '2025-09-28 14:00:00', 50.0),
+      (395, 19, TIMESTAMP '2025-09-27 12:00:00', 'Class', 1, TIMESTAMP '2025-09-27 09:00:00', 71.0),
+      (396, 14, TIMESTAMP '2025-09-27 17:00:00', 'Meeting', 1, TIMESTAMP '2025-09-27 14:00:00', 64.0),
+      (397, 11, TIMESTAMP '2025-09-27 12:00:00', 'Class', 2, TIMESTAMP '2025-09-27 09:00:00', 85.0),
+      (398, 14, TIMESTAMP '2025-09-27 17:00:00', 'Class', 2, TIMESTAMP '2025-09-27 14:00:00', 78.0),
+      (399, 31, TIMESTAMP '2025-09-27 12:00:00', 'Class', 3, TIMESTAMP '2025-09-27 09:00:00', 72.0),
+      (400, 24, TIMESTAMP '2025-09-27 17:00:00', 'Meeting', 3, TIMESTAMP '2025-09-27 14:00:00', 66.0),
+      (401, 34, TIMESTAMP '2025-09-27 12:00:00', 'Class', 4, TIMESTAMP '2025-09-27 09:00:00', 70.0),
+      (402, 21, TIMESTAMP '2025-09-27 17:00:00', 'Meeting', 4, TIMESTAMP '2025-09-27 14:00:00', 88.0),
+      (403, 16, TIMESTAMP '2025-09-27 12:00:00', 'Class', 5, TIMESTAMP '2025-09-27 09:00:00', 73.0),
+      (404, 12, TIMESTAMP '2025-09-27 17:00:00', 'Class', 5, TIMESTAMP '2025-09-27 14:00:00', 63.0),
+      (405, 25, TIMESTAMP '2025-09-27 12:00:00', 'Class', 6, TIMESTAMP '2025-09-27 09:00:00', 67.0),
+      (406, 20, TIMESTAMP '2025-09-27 17:00:00', 'Meeting', 6, TIMESTAMP '2025-09-27 14:00:00', 61.0),
+      (407, 23, TIMESTAMP '2025-09-26 12:00:00', 'Class', 1, TIMESTAMP '2025-09-26 09:00:00', 74.0),
+      (408, 17, TIMESTAMP '2025-09-26 12:00:00', 'Class', 2, TIMESTAMP '2025-09-26 09:00:00', 87.0),
+      (409, 8, TIMESTAMP '2025-09-26 17:00:00', 'Class', 2, TIMESTAMP '2025-09-26 14:00:00', 63.0),
+      (410, 14, TIMESTAMP '2025-09-26 12:00:00', 'Class', 3, TIMESTAMP '2025-09-26 09:00:00', 67.0),
+      (411, 28, TIMESTAMP '2025-09-26 17:00:00', 'Meeting', 3, TIMESTAMP '2025-09-26 14:00:00', 50.0),
+      (412, 34, TIMESTAMP '2025-09-26 12:00:00', 'Class', 4, TIMESTAMP '2025-09-26 09:00:00', 62.0),
+      (413, 21, TIMESTAMP '2025-09-26 17:00:00', 'Class', 4, TIMESTAMP '2025-09-26 14:00:00', 57.0),
+      (414, 12, TIMESTAMP '2025-09-26 12:00:00', 'Class', 5, TIMESTAMP '2025-09-26 09:00:00', 60.0),
+      (415, 17, TIMESTAMP '2025-09-26 12:00:00', 'Class', 6, TIMESTAMP '2025-09-26 09:00:00', 89.0),
+      (416, 27, TIMESTAMP '2025-09-26 17:00:00', 'Class', 6, TIMESTAMP '2025-09-26 14:00:00', 63.0),
+      (417, 21, TIMESTAMP '2025-09-25 12:00:00', 'Class', 1, TIMESTAMP '2025-09-25 09:00:00', 70.0),
+      (418, 24, TIMESTAMP '2025-09-25 17:00:00', 'Meeting', 1, TIMESTAMP '2025-09-25 14:00:00', 77.0),
+      (419, 21, TIMESTAMP '2025-09-25 12:00:00', 'Class', 2, TIMESTAMP '2025-09-25 09:00:00', 83.0),
+      (420, 34, TIMESTAMP '2025-09-25 12:00:00', 'Class', 3, TIMESTAMP '2025-09-25 09:00:00', 80.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (421, 21, TIMESTAMP '2025-09-25 17:00:00', 'Meeting', 3, TIMESTAMP '2025-09-25 14:00:00', 56.0),
+      (422, 11, TIMESTAMP '2025-09-25 12:00:00', 'Class', 4, TIMESTAMP '2025-09-25 09:00:00', 69.0),
+      (423, 15, TIMESTAMP '2025-09-25 17:00:00', 'Class', 4, TIMESTAMP '2025-09-25 14:00:00', 55.0),
+      (424, 10, TIMESTAMP '2025-09-25 12:00:00', 'Class', 5, TIMESTAMP '2025-09-25 09:00:00', 93.0),
+      (425, 12, TIMESTAMP '2025-09-25 12:00:00', 'Class', 6, TIMESTAMP '2025-09-25 09:00:00', 74.0),
+      (426, 29, TIMESTAMP '2025-09-25 17:00:00', 'Meeting', 6, TIMESTAMP '2025-09-25 14:00:00', 87.0),
+      (427, 14, TIMESTAMP '2025-09-24 12:00:00', 'Class', 1, TIMESTAMP '2025-09-24 09:00:00', 65.0),
+      (428, 8, TIMESTAMP '2025-09-24 17:00:00', 'Class', 1, TIMESTAMP '2025-09-24 14:00:00', 86.0),
+      (429, 33, TIMESTAMP '2025-09-24 12:00:00', 'Class', 2, TIMESTAMP '2025-09-24 09:00:00', 65.0),
+      (430, 14, TIMESTAMP '2025-09-24 17:00:00', 'Class', 2, TIMESTAMP '2025-09-24 14:00:00', 66.0),
+      (431, 28, TIMESTAMP '2025-09-24 12:00:00', 'Class', 3, TIMESTAMP '2025-09-24 09:00:00', 82.0),
+      (432, 26, TIMESTAMP '2025-09-24 17:00:00', 'Class', 3, TIMESTAMP '2025-09-24 14:00:00', 86.0),
+      (433, 29, TIMESTAMP '2025-09-24 12:00:00', 'Class', 4, TIMESTAMP '2025-09-24 09:00:00', 67.0),
+      (434, 34, TIMESTAMP '2025-09-24 12:00:00', 'Class', 5, TIMESTAMP '2025-09-24 09:00:00', 79.0),
+      (435, 12, TIMESTAMP '2025-09-24 17:00:00', 'Class', 5, TIMESTAMP '2025-09-24 14:00:00', 64.0),
+      (436, 24, TIMESTAMP '2025-09-24 12:00:00', 'Class', 6, TIMESTAMP '2025-09-24 09:00:00', 83.0),
+      (437, 16, TIMESTAMP '2025-09-23 12:00:00', 'Class', 1, TIMESTAMP '2025-09-23 09:00:00', 77.0),
+      (438, 24, TIMESTAMP '2025-09-23 12:00:00', 'Class', 2, TIMESTAMP '2025-09-23 09:00:00', 88.0),
+      (439, 12, TIMESTAMP '2025-09-23 17:00:00', 'Class', 2, TIMESTAMP '2025-09-23 14:00:00', 62.0),
+      (440, 15, TIMESTAMP '2025-09-23 12:00:00', 'Class', 3, TIMESTAMP '2025-09-23 09:00:00', 64.0),
+      (441, 13, TIMESTAMP '2025-09-23 17:00:00', 'Meeting', 3, TIMESTAMP '2025-09-23 14:00:00', 55.0),
+      (442, 28, TIMESTAMP '2025-09-23 12:00:00', 'Class', 4, TIMESTAMP '2025-09-23 09:00:00', 69.0),
+      (443, 15, TIMESTAMP '2025-09-23 17:00:00', 'Meeting', 4, TIMESTAMP '2025-09-23 14:00:00', 87.0),
+      (444, 22, TIMESTAMP '2025-09-23 12:00:00', 'Class', 5, TIMESTAMP '2025-09-23 09:00:00', 67.0),
+      (445, 18, TIMESTAMP '2025-09-23 12:00:00', 'Class', 6, TIMESTAMP '2025-09-23 09:00:00', 67.0),
+      (446, 12, TIMESTAMP '2025-09-22 12:00:00', 'Class', 1, TIMESTAMP '2025-09-22 09:00:00', 87.0),
+      (447, 20, TIMESTAMP '2025-09-22 17:00:00', 'Class', 1, TIMESTAMP '2025-09-22 14:00:00', 69.0),
+      (448, 15, TIMESTAMP '2025-09-22 12:00:00', 'Class', 2, TIMESTAMP '2025-09-22 09:00:00', 61.0),
+      (449, 25, TIMESTAMP '2025-09-22 17:00:00', 'Meeting', 2, TIMESTAMP '2025-09-22 14:00:00', 83.0),
+      (450, 28, TIMESTAMP '2025-09-22 12:00:00', 'Class', 3, TIMESTAMP '2025-09-22 09:00:00', 82.0),
+      (451, 24, TIMESTAMP '2025-09-22 12:00:00', 'Class', 4, TIMESTAMP '2025-09-22 09:00:00', 79.0),
+      (452, 17, TIMESTAMP '2025-09-22 17:00:00', 'Class', 4, TIMESTAMP '2025-09-22 14:00:00', 71.0),
+      (453, 32, TIMESTAMP '2025-09-22 12:00:00', 'Class', 5, TIMESTAMP '2025-09-22 09:00:00', 77.0),
+      (454, 8, TIMESTAMP '2025-09-22 17:00:00', 'Meeting', 5, TIMESTAMP '2025-09-22 14:00:00', 67.0),
+      (455, 31, TIMESTAMP '2025-09-22 12:00:00', 'Class', 6, TIMESTAMP '2025-09-22 09:00:00', 87.0),
+      (456, 26, TIMESTAMP '2025-09-22 17:00:00', 'Meeting', 6, TIMESTAMP '2025-09-22 14:00:00', 73.0),
+      (457, 31, TIMESTAMP '2025-09-21 12:00:00', 'Class', 1, TIMESTAMP '2025-09-21 09:00:00', 64.0),
+      (458, 34, TIMESTAMP '2025-09-21 12:00:00', 'Class', 2, TIMESTAMP '2025-09-21 09:00:00', 83.0),
+      (459, 25, TIMESTAMP '2025-09-21 12:00:00', 'Class', 3, TIMESTAMP '2025-09-21 09:00:00', 61.0),
+      (460, 13, TIMESTAMP '2025-09-21 12:00:00', 'Class', 4, TIMESTAMP '2025-09-21 09:00:00', 92.0),
+      (461, 18, TIMESTAMP '2025-09-21 17:00:00', 'Class', 4, TIMESTAMP '2025-09-21 14:00:00', 74.0),
+      (462, 11, TIMESTAMP '2025-09-21 12:00:00', 'Class', 5, TIMESTAMP '2025-09-21 09:00:00', 91.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (463, 28, TIMESTAMP '2025-09-21 12:00:00', 'Class', 6, TIMESTAMP '2025-09-21 09:00:00', 91.0),
+      (464, 11, TIMESTAMP '2025-09-20 12:00:00', 'Class', 1, TIMESTAMP '2025-09-20 09:00:00', 66.0),
+      (465, 11, TIMESTAMP '2025-09-20 17:00:00', 'Class', 1, TIMESTAMP '2025-09-20 14:00:00', 54.0),
+      (466, 11, TIMESTAMP '2025-09-20 12:00:00', 'Class', 2, TIMESTAMP '2025-09-20 09:00:00', 72.0),
+      (467, 24, TIMESTAMP '2025-09-20 17:00:00', 'Class', 2, TIMESTAMP '2025-09-20 14:00:00', 87.0),
+      (468, 16, TIMESTAMP '2025-09-20 12:00:00', 'Class', 3, TIMESTAMP '2025-09-20 09:00:00', 91.0),
+      (469, 8, TIMESTAMP '2025-09-20 17:00:00', 'Class', 3, TIMESTAMP '2025-09-20 14:00:00', 85.0),
+      (470, 17, TIMESTAMP '2025-09-20 12:00:00', 'Class', 4, TIMESTAMP '2025-09-20 09:00:00', 89.0),
+      (471, 23, TIMESTAMP '2025-09-20 12:00:00', 'Class', 5, TIMESTAMP '2025-09-20 09:00:00', 86.0),
+      (472, 11, TIMESTAMP '2025-09-20 12:00:00', 'Class', 6, TIMESTAMP '2025-09-20 09:00:00', 79.0),
+      (473, 30, TIMESTAMP '2025-09-19 12:00:00', 'Class', 1, TIMESTAMP '2025-09-19 09:00:00', 87.0),
+      (474, 25, TIMESTAMP '2025-09-19 12:00:00', 'Class', 2, TIMESTAMP '2025-09-19 09:00:00', 63.0),
+      (475, 9, TIMESTAMP '2025-09-19 17:00:00', 'Class', 2, TIMESTAMP '2025-09-19 14:00:00', 88.0),
+      (476, 22, TIMESTAMP '2025-09-19 12:00:00', 'Class', 3, TIMESTAMP '2025-09-19 09:00:00', 89.0),
+      (477, 22, TIMESTAMP '2025-09-19 17:00:00', 'Class', 3, TIMESTAMP '2025-09-19 14:00:00', 77.0),
+      (478, 28, TIMESTAMP '2025-09-19 12:00:00', 'Class', 4, TIMESTAMP '2025-09-19 09:00:00', 74.0),
+      (479, 13, TIMESTAMP '2025-09-19 12:00:00', 'Class', 5, TIMESTAMP '2025-09-19 09:00:00', 68.0),
+      (480, 13, TIMESTAMP '2025-09-19 12:00:00', 'Class', 6, TIMESTAMP '2025-09-19 09:00:00', 60.0),
+      (481, 25, TIMESTAMP '2025-09-19 17:00:00', 'Class', 6, TIMESTAMP '2025-09-19 14:00:00', 52.0),
+      (482, 31, TIMESTAMP '2025-09-18 12:00:00', 'Class', 1, TIMESTAMP '2025-09-18 09:00:00', 77.0),
+      (483, 24, TIMESTAMP '2025-09-18 17:00:00', 'Meeting', 1, TIMESTAMP '2025-09-18 14:00:00', 89.0),
+      (484, 21, TIMESTAMP '2025-09-18 12:00:00', 'Class', 2, TIMESTAMP '2025-09-18 09:00:00', 68.0),
+      (485, 18, TIMESTAMP '2025-09-18 12:00:00', 'Class', 3, TIMESTAMP '2025-09-18 09:00:00', 64.0),
+      (486, 25, TIMESTAMP '2025-09-18 12:00:00', 'Class', 4, TIMESTAMP '2025-09-18 09:00:00', 65.0),
+      (487, 19, TIMESTAMP '2025-09-18 17:00:00', 'Class', 4, TIMESTAMP '2025-09-18 14:00:00', 80.0),
+      (488, 28, TIMESTAMP '2025-09-18 12:00:00', 'Class', 5, TIMESTAMP '2025-09-18 09:00:00', 81.0),
+      (489, 29, TIMESTAMP '2025-09-18 17:00:00', 'Class', 5, TIMESTAMP '2025-09-18 14:00:00', 64.0),
+      (490, 23, TIMESTAMP '2025-09-18 12:00:00', 'Class', 6, TIMESTAMP '2025-09-18 09:00:00', 92.0),
+      (491, 28, TIMESTAMP '2025-09-18 17:00:00', 'Class', 6, TIMESTAMP '2025-09-18 14:00:00', 81.0),
+      (492, 25, TIMESTAMP '2025-09-17 12:00:00', 'Class', 1, TIMESTAMP '2025-09-17 09:00:00', 88.0),
+      (493, 16, TIMESTAMP '2025-09-17 12:00:00', 'Class', 2, TIMESTAMP '2025-09-17 09:00:00', 68.0),
+      (494, 19, TIMESTAMP '2025-09-17 17:00:00', 'Class', 2, TIMESTAMP '2025-09-17 14:00:00', 80.0),
+      (495, 13, TIMESTAMP '2025-09-17 12:00:00', 'Class', 3, TIMESTAMP '2025-09-17 09:00:00', 67.0),
+      (496, 10, TIMESTAMP '2025-09-17 17:00:00', 'Class', 3, TIMESTAMP '2025-09-17 14:00:00', 61.0),
+      (497, 13, TIMESTAMP '2025-09-17 12:00:00', 'Class', 4, TIMESTAMP '2025-09-17 09:00:00', 78.0),
+      (498, 21, TIMESTAMP '2025-09-17 17:00:00', 'Class', 4, TIMESTAMP '2025-09-17 14:00:00', 69.0),
+      (499, 22, TIMESTAMP '2025-09-17 12:00:00', 'Class', 5, TIMESTAMP '2025-09-17 09:00:00', 61.0),
+      (500, 29, TIMESTAMP '2025-09-17 12:00:00', 'Class', 6, TIMESTAMP '2025-09-17 09:00:00', 90.0),
+      (501, 11, TIMESTAMP '2025-09-16 12:00:00', 'Class', 1, TIMESTAMP '2025-09-16 09:00:00', 67.0),
+      (502, 23, TIMESTAMP '2025-09-16 17:00:00', 'Class', 1, TIMESTAMP '2025-09-16 14:00:00', 71.0),
+      (503, 29, TIMESTAMP '2025-09-16 12:00:00', 'Class', 2, TIMESTAMP '2025-09-16 09:00:00', 85.0),
+      (504, 11, TIMESTAMP '2025-09-16 17:00:00', 'Class', 2, TIMESTAMP '2025-09-16 14:00:00', 87.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (505, 29, TIMESTAMP '2025-09-16 12:00:00', 'Class', 3, TIMESTAMP '2025-09-16 09:00:00', 60.0),
+      (506, 10, TIMESTAMP '2025-09-16 12:00:00', 'Class', 4, TIMESTAMP '2025-09-16 09:00:00', 80.0),
+      (507, 29, TIMESTAMP '2025-09-16 17:00:00', 'Class', 4, TIMESTAMP '2025-09-16 14:00:00', 66.0),
+      (508, 11, TIMESTAMP '2025-09-16 12:00:00', 'Class', 5, TIMESTAMP '2025-09-16 09:00:00', 74.0),
+      (509, 12, TIMESTAMP '2025-09-16 17:00:00', 'Class', 5, TIMESTAMP '2025-09-16 14:00:00', 54.0),
+      (510, 17, TIMESTAMP '2025-09-16 12:00:00', 'Class', 6, TIMESTAMP '2025-09-16 09:00:00', 63.0),
+      (511, 32, TIMESTAMP '2025-09-15 12:00:00', 'Class', 1, TIMESTAMP '2025-09-15 09:00:00', 76.0),
+      (512, 21, TIMESTAMP '2025-09-15 17:00:00', 'Class', 1, TIMESTAMP '2025-09-15 14:00:00', 71.0),
+      (513, 25, TIMESTAMP '2025-09-15 12:00:00', 'Class', 2, TIMESTAMP '2025-09-15 09:00:00', 76.0),
+      (514, 29, TIMESTAMP '2025-09-15 12:00:00', 'Class', 3, TIMESTAMP '2025-09-15 09:00:00', 72.0),
+      (515, 34, TIMESTAMP '2025-09-15 12:00:00', 'Class', 4, TIMESTAMP '2025-09-15 09:00:00', 94.0),
+      (516, 11, TIMESTAMP '2025-09-15 17:00:00', 'Class', 4, TIMESTAMP '2025-09-15 14:00:00', 72.0),
+      (517, 27, TIMESTAMP '2025-09-15 12:00:00', 'Class', 5, TIMESTAMP '2025-09-15 09:00:00', 77.0),
+      (518, 16, TIMESTAMP '2025-09-15 17:00:00', 'Class', 5, TIMESTAMP '2025-09-15 14:00:00', 51.0),
+      (519, 16, TIMESTAMP '2025-09-15 12:00:00', 'Class', 6, TIMESTAMP '2025-09-15 09:00:00', 60.0),
+      (520, 28, TIMESTAMP '2025-09-14 12:00:00', 'Class', 1, TIMESTAMP '2025-09-14 09:00:00', 76.0),
+      (521, 17, TIMESTAMP '2025-09-14 17:00:00', 'Class', 1, TIMESTAMP '2025-09-14 14:00:00', 74.0),
+      (522, 22, TIMESTAMP '2025-09-14 12:00:00', 'Class', 2, TIMESTAMP '2025-09-14 09:00:00', 69.0),
+      (523, 24, TIMESTAMP '2025-09-14 12:00:00', 'Class', 3, TIMESTAMP '2025-09-14 09:00:00', 65.0),
+      (524, 15, TIMESTAMP '2025-09-14 12:00:00', 'Class', 4, TIMESTAMP '2025-09-14 09:00:00', 74.0),
+      (525, 22, TIMESTAMP '2025-09-14 17:00:00', 'Meeting', 4, TIMESTAMP '2025-09-14 14:00:00', 69.0),
+      (526, 28, TIMESTAMP '2025-09-14 12:00:00', 'Class', 5, TIMESTAMP '2025-09-14 09:00:00', 62.0),
+      (527, 13, TIMESTAMP '2025-09-14 17:00:00', 'Meeting', 5, TIMESTAMP '2025-09-14 14:00:00', 70.0),
+      (528, 23, TIMESTAMP '2025-09-14 12:00:00', 'Class', 6, TIMESTAMP '2025-09-14 09:00:00', 79.0),
+      (529, 18, TIMESTAMP '2025-09-13 12:00:00', 'Class', 1, TIMESTAMP '2025-09-13 09:00:00', 76.0),
+      (530, 17, TIMESTAMP '2025-09-13 12:00:00', 'Class', 2, TIMESTAMP '2025-09-13 09:00:00', 72.0),
+      (531, 24, TIMESTAMP '2025-09-13 17:00:00', 'Class', 2, TIMESTAMP '2025-09-13 14:00:00', 89.0),
+      (532, 24, TIMESTAMP '2025-09-13 12:00:00', 'Class', 3, TIMESTAMP '2025-09-13 09:00:00', 71.0),
+      (533, 11, TIMESTAMP '2025-09-13 12:00:00', 'Class', 4, TIMESTAMP '2025-09-13 09:00:00', 77.0),
+      (534, 16, TIMESTAMP '2025-09-13 12:00:00', 'Class', 5, TIMESTAMP '2025-09-13 09:00:00', 80.0),
+      (535, 10, TIMESTAMP '2025-09-13 12:00:00', 'Class', 6, TIMESTAMP '2025-09-13 09:00:00', 77.0),
+      (536, 14, TIMESTAMP '2025-09-13 17:00:00', 'Class', 6, TIMESTAMP '2025-09-13 14:00:00', 74.0),
+      (537, 23, TIMESTAMP '2025-09-12 12:00:00', 'Class', 1, TIMESTAMP '2025-09-12 09:00:00', 78.0),
+      (538, 18, TIMESTAMP '2025-09-12 12:00:00', 'Class', 2, TIMESTAMP '2025-09-12 09:00:00', 78.0),
+      (539, 21, TIMESTAMP '2025-09-12 17:00:00', 'Class', 2, TIMESTAMP '2025-09-12 14:00:00', 86.0),
+      (540, 10, TIMESTAMP '2025-09-12 12:00:00', 'Class', 3, TIMESTAMP '2025-09-12 09:00:00', 64.0),
+      (541, 16, TIMESTAMP '2025-09-12 12:00:00', 'Class', 4, TIMESTAMP '2025-09-12 09:00:00', 69.0),
+      (542, 12, TIMESTAMP '2025-09-12 12:00:00', 'Class', 5, TIMESTAMP '2025-09-12 09:00:00', 76.0),
+      (543, 13, TIMESTAMP '2025-09-12 12:00:00', 'Class', 6, TIMESTAMP '2025-09-12 09:00:00', 63.0),
+      (544, 26, TIMESTAMP '2025-09-11 12:00:00', 'Class', 1, TIMESTAMP '2025-09-11 09:00:00', 83.0),
+      (545, 28, TIMESTAMP '2025-09-11 12:00:00', 'Class', 2, TIMESTAMP '2025-09-11 09:00:00', 94.0),
+      (546, 26, TIMESTAMP '2025-09-11 17:00:00', 'Class', 2, TIMESTAMP '2025-09-11 14:00:00', 53.0);
+      INSERT INTO `RoomUsages` (`Id`, `AttendeeCount`, `EndTime`, `Purpose`, `RoomId`, `StartTime`, `UtilizationRate`)
+      VALUES (547, 22, TIMESTAMP '2025-09-11 12:00:00', 'Class', 3, TIMESTAMP '2025-09-11 09:00:00', 61.0),
+      (548, 10, TIMESTAMP '2025-09-11 12:00:00', 'Class', 4, TIMESTAMP '2025-09-11 09:00:00', 86.0),
+      (549, 23, TIMESTAMP '2025-09-11 12:00:00', 'Class', 5, TIMESTAMP '2025-09-11 09:00:00', 74.0),
+      (550, 20, TIMESTAMP '2025-09-11 17:00:00', 'Class', 5, TIMESTAMP '2025-09-11 14:00:00', 67.0),
+      (551, 33, TIMESTAMP '2025-09-11 12:00:00', 'Class', 6, TIMESTAMP '2025-09-11 09:00:00', 61.0),
+      (552, 27, TIMESTAMP '2025-09-11 17:00:00', 'Class', 6, TIMESTAMP '2025-09-11 14:00:00', 61.0);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (19ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      INSERT INTO `StudentProgress` (`Id`, `AssessmentDate`, `AttendanceRate`, `Notes`, `PerformanceLevel`, `Score`, `StudentId`, `Subject`)
+      VALUES (1, TIMESTAMP '2025-11-07 01:22:35.989549', 88, 'Assessment for November 2025', 'Good', 82.0, 1, 'Matemáticas'),
+      (2, TIMESTAMP '2025-10-26 01:22:35.989554', 97, 'Assessment for October 2025', 'Excellent', 85.0, 1, 'Matemáticas'),
+      (3, TIMESTAMP '2025-09-07 01:22:35.989555', 88, 'Assessment for September 2025', 'Good', 77.0, 1, 'Matemáticas'),
+      (4, TIMESTAMP '2025-08-04 01:22:35.989556', 96, 'Assessment for August 2025', 'Excellent', 89.0, 1, 'Matemáticas'),
+      (5, TIMESTAMP '2025-07-16 01:22:35.989557', 80, 'Assessment for July 2025', 'Average', 65.0, 1, 'Matemáticas'),
+      (6, TIMESTAMP '2025-06-16 01:22:35.989557', 75, 'Assessment for June 2025', 'Excellent', 100.0, 1, 'Matemáticas'),
+      (7, TIMESTAMP '2025-11-24 01:22:35.989558', 85, 'Assessment for November 2025', 'Good', 73.0, 2, 'Programación'),
+      (8, TIMESTAMP '2025-10-11 01:22:35.989559', 96, 'Assessment for October 2025', 'Good', 79.0, 2, 'Programación'),
+      (9, TIMESTAMP '2025-09-30 01:22:35.989559', 89, 'Assessment for September 2025', 'Average', 64.0, 2, 'Programación'),
+      (10, TIMESTAMP '2025-08-29 01:22:35.98956', 78, 'Assessment for August 2025', 'Excellent', 100.0, 2, 'Programación'),
+      (11, TIMESTAMP '2025-07-22 01:22:35.98956', 79, 'Assessment for July 2025', 'Excellent', 100.0, 2, 'Programación'),
+      (12, TIMESTAMP '2025-06-07 01:22:35.989561', 78, 'Assessment for June 2025', 'Excellent', 98.0, 2, 'Programación'),
+      (13, TIMESTAMP '2025-11-28 01:22:35.989562', 81, 'Assessment for November 2025', 'Average', 64.0, 3, 'Inglés'),
+      (14, TIMESTAMP '2025-10-07 01:22:35.989562', 96, 'Assessment for October 2025', 'Excellent', 90.0, 3, 'Inglés'),
+      (15, TIMESTAMP '2025-09-21 01:22:35.989563', 90, 'Assessment for September 2025', 'Excellent', 92.0, 3, 'Inglés'),
+      (16, TIMESTAMP '2025-08-19 01:22:35.989563', 80, 'Assessment for August 2025', 'Good', 71.0, 3, 'Inglés'),
+      (17, TIMESTAMP '2025-07-27 01:22:35.989564', 93, 'Assessment for July 2025', 'Excellent', 91.0, 3, 'Inglés'),
+      (18, TIMESTAMP '2025-06-09 01:22:35.989565', 89, 'Assessment for June 2025', 'Excellent', 100.0, 3, 'Inglés'),
+      (19, TIMESTAMP '2025-11-24 01:22:35.989565', 92, 'Assessment for November 2025', 'Excellent', 94.0, 4, 'Ciencias'),
+      (20, TIMESTAMP '2025-10-30 01:22:35.989566', 85, 'Assessment for October 2025', 'Good', 70.0, 4, 'Ciencias'),
+      (21, TIMESTAMP '2025-09-05 01:22:35.989566', 90, 'Assessment for September 2025', 'Average', 64.0, 4, 'Ciencias'),
+      (22, TIMESTAMP '2025-08-27 01:22:35.989567', 82, 'Assessment for August 2025', 'Excellent', 89.0, 4, 'Ciencias'),
+      (23, TIMESTAMP '2025-07-18 01:22:35.989567', 76, 'Assessment for July 2025', 'Good', 70.0, 4, 'Ciencias'),
+      (24, TIMESTAMP '2025-06-12 01:22:35.989568', 75, 'Assessment for June 2025', 'Good', 82.0, 4, 'Ciencias'),
+      (25, TIMESTAMP '2025-11-12 01:22:35.989569', 78, 'Assessment for November 2025', 'Good', 77.0, 5, 'Arte'),
+      (26, TIMESTAMP '2025-10-22 01:22:35.989569', 82, 'Assessment for October 2025', 'Excellent', 88.0, 5, 'Arte'),
+      (27, TIMESTAMP '2025-09-23 01:22:35.98957', 98, 'Assessment for September 2025', 'Excellent', 87.0, 5, 'Arte'),
+      (28, TIMESTAMP '2025-08-07 01:22:35.98957', 99, 'Assessment for August 2025', 'Good', 75.0, 5, 'Arte'),
+      (29, TIMESTAMP '2025-07-08 01:22:35.989571', 85, 'Assessment for July 2025', 'Excellent', 99.0, 5, 'Arte'),
+      (30, TIMESTAMP '2025-06-04 01:22:35.989572', 79, 'Assessment for June 2025', 'Good', 82.0, 5, 'Arte');
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (138ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE UNIQUE INDEX `IX_Customers_Email` ON `Customers` (`Email`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (75ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Diagnostics_StudentId` ON `Diagnostics` (`StudentId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (124ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Rooms_LocationId` ON `Rooms` (`LocationId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (102ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_RoomUsages_RoomId` ON `RoomUsages` (`RoomId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (84ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_StudentProgress_AssessmentDate` ON `StudentProgress` (`AssessmentDate`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (101ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_StudentProgress_StudentId` ON `StudentProgress` (`StudentId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (116ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Students_CustomerId` ON `Students` (`CustomerId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (124ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Transactions_CustomerId` ON `Transactions` (`CustomerId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (86ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Transactions_LocationId` ON `Transactions` (`LocationId`);
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (68ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      CREATE INDEX `IX_Transactions_TransactionDate` ON `Transactions` (`TransactionDate`);
+info: Program[0]
+      Base de datos inicializada correctamente
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Servicio de Entrenamiento ML iniciado
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5245
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: /home/juan/dev/finanzas/FinancialAnalytics.API
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Iniciando entrenamiento automático de modelos...
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (13ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+      FROM `Transactions` AS `t`
+      INNER JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+      WHERE `t`.`Status` = 'Completed'
+info: FinancialAnalytics.API.Services.MLModelService[0]
+      Model saved: MLModels/Trained/RevenuePredictor.zip
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Modelo de predicción de ingresos entrenado exitosamente
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+      FROM `Customers` AS `c`
+      LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+      WHERE `c`.`IsActive`
+      ORDER BY `c`.`Id`
+info: FinancialAnalytics.API.Services.MLModelService[0]
+      Model saved: MLModels/Trained/CustomerSegmentation.zip
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Modelo de segmentación de clientes entrenado exitosamente
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`
+      FROM `RoomUsages` AS `r`
+      INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+info: FinancialAnalytics.API.Services.MLModelService[0]
+      Model saved: MLModels/Trained/RoomUsagePredictor.zip
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Modelo de predicción de uso de salas entrenado exitosamente
+info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+      Executed DbCommand (2ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+      SELECT `s`.`Id`, `s`.`AssessmentDate`, `s`.`AttendanceRate`, `s`.`Notes`, `s`.`PerformanceLevel`, `s`.`Score`, `s`.`StudentId`, `s`.`Subject`, `s0`.`Id`, `s0`.`CustomerId`, `s0`.`Email`, `s0`.`EnrollmentDate`, `s0`.`IsActive`, `s0`.`Name`, `s0`.`Program`
+      FROM `StudentProgress` AS `s`
+      INNER JOIN `Students` AS `s0` ON `s`.`StudentId` = `s0`.`Id`
+      ORDER BY `s`.`AssessmentDate`
+info: FinancialAnalytics.API.Services.MLModelService[0]
+      Model saved: MLModels/Trained/StudentPerformancePredictor.zip
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Modelo de predicción de rendimiento estudiantil entrenado exitosamente
+info: FinancialAnalytics.API.Services.MLTrainingService[0]
+      Todos los modelos fueron entrenados exitosamente

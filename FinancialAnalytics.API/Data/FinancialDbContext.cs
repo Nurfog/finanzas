@@ -111,8 +111,8 @@ public class FinancialDbContext : DbContext
             entity.Property(e => e.Content).HasColumnType("LONGTEXT");
         });
 
-        // Seed data disabled - using legacy data sync instead
-        // SeedData(modelBuilder);
+        // Seed data enabled for local development
+        SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)

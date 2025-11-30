@@ -20,7 +20,7 @@ builder.Services.AddSwaggerGen(c =>
 // Configurar Base de Datos MySQL
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<FinancialDbContext>(options =>
-    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));;
 
 // Configurar Legacy Database Context (read-only)
 builder.Services.AddDbContext<LegacyDbContext>(options =>
@@ -81,10 +81,10 @@ using (var scope = app.Services.CreateScope())
             context.Database.EnsureCreated();
             logger.LogInformation("Base de datos inicializada correctamente");
             
-            // Sincronizar datos legacy
-            var syncService = services.GetRequiredService<LegacyDataSyncService>();
-            await syncService.SyncDataAsync();
-            logger.LogInformation("Sincronización de datos legacy completada");
+            // Sincronizar datos legacy (Deshabilitado para usar datos de prueba locales)
+            // var syncService = services.GetRequiredService<LegacyDataSyncService>();
+            // await syncService.SyncDataAsync();
+            // logger.LogInformation("Sincronización de datos legacy completada");
         }
     }
     catch (Exception ex)
