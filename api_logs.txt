@@ -1,0 +1,589 @@
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (138ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+financial_api  |       FROM information_schema.tables
+financial_api  |       WHERE table_type = 'BASE TABLE' AND table_schema = 'financial_analytics'
+financial_api  | info: Program[0]
+financial_api  |       Base de datos inicializada correctamente
+financial_api  | info: FinancialAnalytics.API.Services.DataSeedingService[0]
+financial_api  |       Starting database seeding check...
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (137ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT COUNT(*)
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  | info: FinancialAnalytics.API.Services.DataSeedingService[0]
+financial_api  |       Database already has robust data (7112 transactions). Skipping seeding.
+financial_api  | info: Program[0]
+financial_api  |       Datos de prueba cargados correctamente
+financial_api  | info: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Servicio de Entrenamiento ML iniciado
+financial_api  | info: FinancialAnalytics.API.Services.ScheduledSyncService[0]
+financial_api  |       Scheduled Sync Service iniciado
+financial_api  | info: FinancialAnalytics.API.Services.ScheduledSyncService[0]
+financial_api  |       Próxima sincronización automática: 2025-12-02 02:00:00
+financial_api  | info: Microsoft.Hosting.Lifetime[14]
+financial_api  |       Now listening on: http://[::]:8080
+financial_api  | info: Microsoft.Hosting.Lifetime[0]
+financial_api  |       Application started. Press Ctrl+C to shut down.
+financial_api  | info: Microsoft.Hosting.Lifetime[0]
+financial_api  |       Hosting environment: Development
+financial_api  | info: Microsoft.Hosting.Lifetime[0]
+financial_api  |       Content root path: /app
+financial_api  | info: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Iniciando entrenamiento automático de modelos...
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (268ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       LEFT JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+financial_api  |       WHERE `t`.`Status` = 'Completed'
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model saved: MLModels/Trained/RevenuePredictor.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Modelo de predicción de ingresos entrenado exitosamente
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  |       LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+financial_api  |       WHERE `c`.`IsActive`
+financial_api  |       ORDER BY `c`.`Id`
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model saved: MLModels/Trained/CustomerSegmentation.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Modelo de segmentación de clientes entrenado exitosamente
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (134ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`
+financial_api  |       FROM `RoomUsages` AS `r`
+financial_api  |       INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+financial_api  | warn: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       No hay suficientes datos de uso de salas para entrenar el modelo
+financial_api  | fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+financial_api  |       Failed executing DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `s`.`Id`, `s`.`AssessmentDate`, `s`.`AssessmentType`, `s`.`AttendanceRate`, `s`.`Notes`, `s`.`PerformanceLevel`, `s`.`Score`, `s`.`StudentId`, `s`.`Subject`, `s0`.`Id`, `s0`.`CustomerId`, `s0`.`Email`, `s0`.`EnrollmentDate`, `s0`.`IsActive`, `s0`.`Name`, `s0`.`Program`, `s0`.`Status`
+financial_api  |       FROM `StudentProgress` AS `s`
+financial_api  |       INNER JOIN `Students` AS `s0` ON `s`.`StudentId` = `s0`.`Id`
+financial_api  |       ORDER BY `s`.`AssessmentDate`
+financial_api  | fail: Microsoft.EntityFrameworkCore.Query[10100]
+financial_api  |       An exception occurred while iterating over the results of a query for context type 'FinancialAnalytics.API.Data.FinancialDbContext'.
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.AssessmentType' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.AssessmentType' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  | fail: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Error entrenando modelo de rendimiento estudiantil
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.AssessmentType' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.MLTrainingService.TrainStudentPerformanceModel(FinancialDbContext context, MLModelService mlService) in /src/Services/MLTrainingService.cs:line 210
+financial_api  | info: FinancialAnalytics.API.Services.MLTrainingService[0]
+financial_api  |       Todos los modelos fueron entrenados exitosamente
+financial_api  | info: FinancialAnalytics.API.Controllers.SyncController[0]
+financial_api  |       Sincronización manual iniciada por usuario
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       === Iniciando sincronización de datos legacy ===
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT CASE WHEN COUNT(*) = 0 THEN FALSE ELSE TRUE END
+financial_api  |       FROM information_schema.tables
+financial_api  |       WHERE table_type = 'BASE TABLE' AND table_schema = 'financial_analytics'
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Sincronizando clientes...
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `v`.`idCliente`, `v`.`ApMaterno`, `v`.`ApPaterno`, `v`.`Email`, `v`.`Fono`, `v`.`Nombres`
+financial_api  |       FROM `vw_legacy_clientes` AS `v`
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Encontrados 14683 clientes en legacy
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (134ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Email`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       No hay clientes nuevos para sincronizar
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Sincronizando estudiantes...
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (134ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `v`.`Rut`, `v`.`AP_Materno`, `v`.`AP_Paterno`, `v`.`Email`, `v`.`Nombres`
+financial_api  |       FROM `vw_legacy_alumnos` AS `v`
+financial_api  | info: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Encontrados 40017 estudiantes en legacy
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (134ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `s`.`Email`
+financial_api  |       FROM `Students` AS `s`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (136ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante +5697808788-6: Email MOIRA.HIDALGO.SALAS@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 11974220-K: Email FIGUEROA.L.RICARDO@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 13269972-0: Email RENZO.GUERREO@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 13889809-1: Email LARMIJO71@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 14319671-2: Email PAGABELLA@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 16909933-2: Email DQUINCHEL@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 18149979-6: Email DIRAMIREZ@HOTMAIL.ES no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 18269899-7: Email JOSELLYHRH@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 19730332-8: Email MFERNANDEZ@SF6CHILE.CL no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 19893131-4: Email VL.MORALESALMARZA@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 20237535-9: Email NAAAATYSALINAS@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 20283811-1: Email COCQUEREL.FRANCISCA@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 20836112-0: Email MANU.PAREJOK12@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 20871673-5: Email BENJAMIN9651@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 21680741-3: Email BENJAMINLARAZAPATA7@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 22161279-5: Email BFSILVARUIZ@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 22829363-6: Email IGNACIOBARKERV@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 24168171-8: Email MAURAFUENTES.H@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 24978364-1: Email MPEBAZAVILLA@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 25759631-1: Email NATTALIADELVALLE@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 26417924-6: Email JDANIELSALASR@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 26590880-2: Email MPEBAZAVILLA@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 26908605-K: Email DANIELOJEDATOCHON@GMAIL.COM no encontrado en Clientes.
+financial_api  | warn: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Omitiendo estudiante 29014514-7: Email ISAIAS.CEDENO.VERA@GMAIL.COM no encontrado en Clientes.
+financial_api  | fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+financial_api  |       Failed executing DbCommand (152ms) [Parameters=[@p0='?' (DbType = Int32), @p1='?' (Size = 200), @p2='?' (DbType = DateTime), @p3='?' (DbType = Boolean), @p4='?' (Size = 200), @p5='?' (Size = 4000), @p6='?' (Size = 4000)], CommandType='Text', CommandTimeout='30']
+financial_api  |       INSERT INTO `Students` (`CustomerId`, `Email`, `EnrollmentDate`, `IsActive`, `Name`, `Program`, `Status`)
+financial_api  |       VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6);
+financial_api  |       SELECT `Id`
+financial_api  |       FROM `Students`
+financial_api  |       WHERE ROW_COUNT() = 1 AND `Id` = LAST_INSERT_ID();
+financial_api  | fail: Microsoft.EntityFrameworkCore.Update[10000]
+financial_api  |       An exception occurred in the database while saving changes for context type 'FinancialAnalytics.API.Data.FinancialDbContext'.
+financial_api  |       Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+financial_api  |        ---> MySqlConnector.MySqlException (0x80004005): Unknown column 'Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          --- End of inner exception stack trace ---
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |       Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+financial_api  |        ---> MySqlConnector.MySqlException (0x80004005): Unknown column 'Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          --- End of inner exception stack trace ---
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  | fail: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Error sincronizando estudiantes
+financial_api  |       Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+financial_api  |        ---> MySqlConnector.MySqlException (0x80004005): Unknown column 'Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          --- End of inner exception stack trace ---
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.LegacyDataSyncService.SyncStudents(LegacyDbContext legacy, FinancialDbContext financial) in /src/Services/LegacyDataSyncService.cs:line 305
+financial_api  | fail: FinancialAnalytics.API.Services.LegacyDataSyncService[0]
+financial_api  |       Error fatal durante la sincronización
+financial_api  |       Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+financial_api  |        ---> MySqlConnector.MySqlException (0x80004005): Unknown column 'Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          --- End of inner exception stack trace ---
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.LegacyDataSyncService.SyncStudents(LegacyDbContext legacy, FinancialDbContext financial) in /src/Services/LegacyDataSyncService.cs:line 305
+financial_api  |          at FinancialAnalytics.API.Services.LegacyDataSyncService.SyncDataAsync() in /src/Services/LegacyDataSyncService.cs:line 50
+financial_api  | fail: FinancialAnalytics.API.Controllers.SyncController[0]
+financial_api  |       Error en sincronización manual
+financial_api  |       Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+financial_api  |        ---> MySqlConnector.MySqlException (0x80004005): Unknown column 'Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          --- End of inner exception stack trace ---
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.LegacyDataSyncService.SyncStudents(LegacyDbContext legacy, FinancialDbContext financial) in /src/Services/LegacyDataSyncService.cs:line 305
+financial_api  |          at FinancialAnalytics.API.Services.LegacyDataSyncService.SyncDataAsync() in /src/Services/LegacyDataSyncService.cs:line 50
+financial_api  |          at FinancialAnalytics.API.Controllers.SyncController.<TriggerSync>b__3_0() in /src/Controllers/SyncController.cs:line 46
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (134ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+financial_api  |       FROM `RoomUsages` AS `r`
+financial_api  |       INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+financial_api  |       INNER JOIN `Locations` AS `l` ON `r0`.`LocationId` = `l`.`Id`
+financial_api  | fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+financial_api  |       Failed executing DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `s`.`Id`, `s`.`CustomerId`, `s`.`Email`, `s`.`EnrollmentDate`, `s`.`IsActive`, `s`.`Name`, `s`.`Program`, `s`.`Status`, `s0`.`Id`, `s0`.`AssessmentDate`, `s0`.`AssessmentType`, `s0`.`AttendanceRate`, `s0`.`Notes`, `s0`.`PerformanceLevel`, `s0`.`Score`, `s0`.`StudentId`, `s0`.`Subject`
+financial_api  |       FROM `Students` AS `s`
+financial_api  |       LEFT JOIN `StudentProgress` AS `s0` ON `s`.`Id` = `s0`.`StudentId`
+financial_api  |       WHERE `s`.`IsActive`
+financial_api  |       ORDER BY `s`.`Id`
+financial_api  | fail: Microsoft.EntityFrameworkCore.Query[10100]
+financial_api  |       An exception occurred while iterating over the results of a query for context type 'FinancialAnalytics.API.Data.FinancialDbContext'.
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  | fail: FinancialAnalytics.API.Controllers.AnalyticsController[0]
+financial_api  |       Error getting student analytics
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.AnalyticsService.GetStudentAnalytics() in /src/Services/AnalyticsService.cs:line 268
+financial_api  |          at FinancialAnalytics.API.Controllers.AnalyticsController.GetStudentAnalytics() in /src/Controllers/AnalyticsController.cs:line 123
+financial_api  | fail: Microsoft.EntityFrameworkCore.Database.Command[20102]
+financial_api  |       Failed executing DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `s`.`Id`, `s`.`CustomerId`, `s`.`Email`, `s`.`EnrollmentDate`, `s`.`IsActive`, `s`.`Name`, `s`.`Program`, `s`.`Status`, `s0`.`Id`, `s0`.`AssessmentDate`, `s0`.`AssessmentType`, `s0`.`AttendanceRate`, `s0`.`Notes`, `s0`.`PerformanceLevel`, `s0`.`Score`, `s0`.`StudentId`, `s0`.`Subject`
+financial_api  |       FROM `Students` AS `s`
+financial_api  |       LEFT JOIN `StudentProgress` AS `s0` ON `s`.`Id` = `s0`.`StudentId`
+financial_api  |       WHERE `s`.`IsActive`
+financial_api  |       ORDER BY `s`.`Id`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+financial_api  |       FROM `RoomUsages` AS `r`
+financial_api  |       INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+financial_api  |       INNER JOIN `Locations` AS `l` ON `r0`.`LocationId` = `l`.`Id`
+financial_api  | fail: Microsoft.EntityFrameworkCore.Query[10100]
+financial_api  |       An exception occurred while iterating over the results of a query for context type 'FinancialAnalytics.API.Data.FinancialDbContext'.
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  | fail: FinancialAnalytics.API.Controllers.AnalyticsController[0]
+financial_api  |       Error getting student analytics
+financial_api  |       MySqlConnector.MySqlException (0x80004005): Unknown column 's.Status' in 'field list'
+financial_api  |          at MySqlConnector.Core.ServerSession.ReceiveReplyAsync(IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/ServerSession.cs:line 894
+financial_api  |          at MySqlConnector.Core.ResultSet.ReadResultSetHeaderAsync(IOBehavior ioBehavior) in /_/src/MySqlConnector/Core/ResultSet.cs:line 37
+financial_api  |          at MySqlConnector.MySqlDataReader.ActivateResultSet(CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 130
+financial_api  |          at MySqlConnector.MySqlDataReader.InitAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, IDictionary`2 cachedProcedures, IMySqlCommand command, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlDataReader.cs:line 483
+financial_api  |          at MySqlConnector.Core.CommandExecutor.ExecuteReaderAsync(CommandListPosition commandListPosition, ICommandPayloadCreator payloadCreator, CommandBehavior behavior, Activity activity, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/Core/CommandExecutor.cs:line 56
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteReaderAsync(CommandBehavior behavior, IOBehavior ioBehavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 357
+financial_api  |          at MySqlConnector.MySqlCommand.ExecuteDbDataReaderAsync(CommandBehavior behavior, CancellationToken cancellationToken) in /_/src/MySqlConnector/MySqlCommand.cs:line 350
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.InitializeReaderAsync(AsyncEnumerator enumerator, CancellationToken cancellationToken)
+financial_api  |          at Pomelo.EntityFrameworkCore.MySql.Storage.Internal.MySqlExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.Query.Internal.SingleQueryingEnumerable`1.AsyncEnumerator.MoveNextAsync()
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync[TSource](IQueryable`1 source, CancellationToken cancellationToken)
+financial_api  |          at FinancialAnalytics.API.Services.AnalyticsService.GetStudentAnalytics() in /src/Services/AnalyticsService.cs:line 268
+financial_api  |          at FinancialAnalytics.API.Controllers.AnalyticsController.GetStudentAnalytics() in /src/Controllers/AnalyticsController.cs:line 123
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (274ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (274ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/RevenuePredictor.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/RevenuePredictor.zip
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (159ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`LocationId`, `l`.`Name` AS `LocationName`, COALESCE(SUM(`t`.`Amount`), 0.0) AS `Revenue`, COUNT(*) AS `TransactionCount`, AVG(`t`.`Amount`) AS `AverageTransaction`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       LEFT JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  |       GROUP BY `t`.`LocationId`, `l`.`Name`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (159ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`LocationId`, `l`.`Name` AS `LocationName`, COALESCE(SUM(`t`.`Amount`), 0.0) AS `Revenue`, COUNT(*) AS `TransactionCount`, AVG(`t`.`Amount`) AS `AverageTransaction`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       LEFT JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  |       GROUP BY `t`.`LocationId`, `l`.`Name`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (178ms) [Parameters=[@__locationId_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t0`.`Month`, `t0`.`Year`, COUNT(DISTINCT (`t0`.`CustomerId`)) AS `CustomerCount`, COUNT(*) AS `TransactionCount`
+financial_api  |       FROM (
+financial_api  |           SELECT `t`.`CustomerId`, EXTRACT(month FROM `t`.`TransactionDate`) AS `Month`, EXTRACT(year FROM `t`.`TransactionDate`) AS `Year`
+financial_api  |           FROM `Transactions` AS `t`
+financial_api  |           WHERE (`t`.`LocationId` = @__locationId_0) AND (`t`.`Status` = 'Completed')
+financial_api  |       ) AS `t0`
+financial_api  |       GROUP BY `t0`.`Month`, `t0`.`Year`
+financial_api  |       ORDER BY `t0`.`Year` DESC, `t0`.`Month` DESC
+financial_api  |       LIMIT @__p_1
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (179ms) [Parameters=[@__locationId_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t0`.`Month`, `t0`.`Year`, COUNT(DISTINCT (`t0`.`CustomerId`)) AS `CustomerCount`, COUNT(*) AS `TransactionCount`
+financial_api  |       FROM (
+financial_api  |           SELECT `t`.`CustomerId`, EXTRACT(month FROM `t`.`TransactionDate`) AS `Month`, EXTRACT(year FROM `t`.`TransactionDate`) AS `Year`
+financial_api  |           FROM `Transactions` AS `t`
+financial_api  |           WHERE (`t`.`LocationId` = @__locationId_0) AND (`t`.`Status` = 'Completed')
+financial_api  |       ) AS `t0`
+financial_api  |       GROUP BY `t0`.`Month`, `t0`.`Year`
+financial_api  |       ORDER BY `t0`.`Year` DESC, `t0`.`Month` DESC
+financial_api  |       LIMIT @__p_1
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/CustomerSegmentation.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/CustomerSegmentation.zip
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (139ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  |       LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+financial_api  |       WHERE `c`.`IsActive`
+financial_api  |       ORDER BY `c`.`Id`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (274ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  |       LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+financial_api  |       WHERE `c`.`IsActive`
+financial_api  |       ORDER BY `c`.`Id`
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/RevenuePredictor.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/RevenuePredictor.zip
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (168ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`LocationId`, `l`.`Name` AS `LocationName`, COALESCE(SUM(`t`.`Amount`), 0.0) AS `Revenue`, COUNT(*) AS `TransactionCount`, AVG(`t`.`Amount`) AS `AverageTransaction`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       LEFT JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  |       GROUP BY `t`.`LocationId`, `l`.`Name`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (174ms) [Parameters=[@__startDate_0='?' (DbType = DateTime), @__endDate_1='?' (DbType = DateTime)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t`.`LocationId`, `l`.`Name` AS `LocationName`, COALESCE(SUM(`t`.`Amount`), 0.0) AS `Revenue`, COUNT(*) AS `TransactionCount`, AVG(`t`.`Amount`) AS `AverageTransaction`
+financial_api  |       FROM `Transactions` AS `t`
+financial_api  |       LEFT JOIN `Locations` AS `l` ON `t`.`LocationId` = `l`.`Id`
+financial_api  |       WHERE ((`t`.`TransactionDate` >= @__startDate_0) AND (`t`.`TransactionDate` <= @__endDate_1)) AND (`t`.`Status` = 'Completed')
+financial_api  |       GROUP BY `t`.`LocationId`, `l`.`Name`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (187ms) [Parameters=[@__locationId_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t0`.`Month`, `t0`.`Year`, COUNT(DISTINCT (`t0`.`CustomerId`)) AS `CustomerCount`, COUNT(*) AS `TransactionCount`
+financial_api  |       FROM (
+financial_api  |           SELECT `t`.`CustomerId`, EXTRACT(month FROM `t`.`TransactionDate`) AS `Month`, EXTRACT(year FROM `t`.`TransactionDate`) AS `Year`
+financial_api  |           FROM `Transactions` AS `t`
+financial_api  |           WHERE (`t`.`LocationId` = @__locationId_0) AND (`t`.`Status` = 'Completed')
+financial_api  |       ) AS `t0`
+financial_api  |       GROUP BY `t0`.`Month`, `t0`.`Year`
+financial_api  |       ORDER BY `t0`.`Year` DESC, `t0`.`Month` DESC
+financial_api  |       LIMIT @__p_1
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (182ms) [Parameters=[@__locationId_0='?' (DbType = Int32), @__p_1='?' (DbType = Int32)], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `t0`.`Month`, `t0`.`Year`, COUNT(DISTINCT (`t0`.`CustomerId`)) AS `CustomerCount`, COUNT(*) AS `TransactionCount`
+financial_api  |       FROM (
+financial_api  |           SELECT `t`.`CustomerId`, EXTRACT(month FROM `t`.`TransactionDate`) AS `Month`, EXTRACT(year FROM `t`.`TransactionDate`) AS `Year`
+financial_api  |           FROM `Transactions` AS `t`
+financial_api  |           WHERE (`t`.`LocationId` = @__locationId_0) AND (`t`.`Status` = 'Completed')
+financial_api  |       ) AS `t0`
+financial_api  |       GROUP BY `t0`.`Month`, `t0`.`Year`
+financial_api  |       ORDER BY `t0`.`Year` DESC, `t0`.`Month` DESC
+financial_api  |       LIMIT @__p_1
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/CustomerSegmentation.zip
+financial_api  | info: FinancialAnalytics.API.Services.MLModelService[0]
+financial_api  |       Model loaded: MLModels/Trained/CustomerSegmentation.zip
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (135ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  |       LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+financial_api  |       WHERE `c`.`IsActive`
+financial_api  |       ORDER BY `c`.`Id`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (139ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `c`.`Id`, `c`.`CustomerType`, `c`.`Email`, `c`.`IsActive`, `c`.`Name`, `c`.`Phone`, `c`.`RegistrationDate`, `t`.`Id`, `t`.`Amount`, `t`.`CustomerId`, `t`.`Description`, `t`.`LocationId`, `t`.`PaymentMethod`, `t`.`Status`, `t`.`TransactionDate`, `t`.`TransactionType`
+financial_api  |       FROM `Customers` AS `c`
+financial_api  |       LEFT JOIN `Transactions` AS `t` ON `c`.`Id` = `t`.`CustomerId`
+financial_api  |       WHERE `c`.`IsActive`
+financial_api  |       ORDER BY `c`.`Id`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (133ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+financial_api  |       FROM `RoomUsages` AS `r`
+financial_api  |       INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+financial_api  |       INNER JOIN `Locations` AS `l` ON `r0`.`LocationId` = `l`.`Id`
+financial_api  | info: Microsoft.EntityFrameworkCore.Database.Command[20101]
+financial_api  |       Executed DbCommand (136ms) [Parameters=[], CommandType='Text', CommandTimeout='30']
+financial_api  |       SELECT `r`.`Id`, `r`.`AttendeeCount`, `r`.`EndTime`, `r`.`Purpose`, `r`.`RoomId`, `r`.`StartTime`, `r`.`UtilizationRate`, `r0`.`Id`, `r0`.`Capacity`, `r0`.`IsActive`, `r0`.`LocationId`, `r0`.`Name`, `r0`.`RoomType`, `l`.`Id`, `l`.`Address`, `l`.`City`, `l`.`Country`, `l`.`IsActive`, `l`.`Name`, `l`.`OpeningDate`
+financial_api  |       FROM `RoomUsages` AS `r`
+financial_api  |       INNER JOIN `Rooms` AS `r0` ON `r`.`RoomId` = `r0`.`Id`
+financial_api  |       INNER JOIN `Locations` AS `l` ON `r0`.`LocationId` = `l`.`Id`

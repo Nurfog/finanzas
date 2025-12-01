@@ -14,6 +14,8 @@ import {
     ArcElement,
     Filler
 } from 'chart.js';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 ChartJS.register(
     CategoryScale,
@@ -171,6 +173,35 @@ export default function Dashboard() {
                 hoverBackgroundColor: '#10b981'
             }
         ]
+    };
+
+    const handleExport = async () => {
+        const dashboard = document.getElementById('dashboard-content');
+        if (!dashboard) return;
+
+        try {
+            const canvas = await html2canvas(dashboard, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                ignoreElements: (element) => element.dataset.html2canvasIgnore === 'true'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const imgWidth = 297; // A4 landscape width
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save('dashboard-report.pdf');
+        } catch (error) {
+            console.error("Error exporting dashboard:", error);
+        }
     };
 
     return (

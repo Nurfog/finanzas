@@ -80,7 +80,7 @@ public class MLTrainingService : BackgroundService
                 .Select(g => new RevenueData
                 {
                     Month = g.Key.Month,
-                    LocationId = g.Key.LocationId,
+                    LocationId = (float)(g.Key.LocationId ?? 0),
                     CustomerCount = g.Select(t => t.CustomerId).Distinct().Count(),
                     TransactionCount = g.Count(),
                     Revenue = (float)g.Sum(t => t.Amount)

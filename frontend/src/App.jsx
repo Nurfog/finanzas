@@ -23,6 +23,98 @@ function NavLink({ to, children, icon }) {
     );
 }
 
+function SyncButton() {
+    const [syncStatus, setSyncStatus] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Poll sync status
+    const fetchStatus = async () => {
+        try {
+            const response = await fetch('http://localhost:5245/api/sync/status');
+            const data = await response.json();
+            setSyncStatus(data);
+        } catch (error) {
+            console.error('Error fetching sync status:', error);
+        }
+    };
+
+    // Fetch status on mount and every 5 seconds
+    useState(() => {
+        fetchStatus();
+        const interval = setInterval(fetchStatus, 5000);
+        return () => clearInterval(interval);
+    }, []);
+
+    const handleSync = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch('http://localhost:5245/api/sync/trigger', {
+                method: 'POST'
+            });
+            const data = await response.json();
+
+            if (response.ok) {
+                // Start polling more frequently during sync
+                const pollInterval = setInterval(fetchStatus, 2000);
+                setTimeout(() => clearInterval(pollInterval), 60000); // Stop after 1 minute
+            } else {
+                alert(data.message || 'Error al iniciar sincronización');
+            }
+        } catch (error) {
+            console.error('Error triggering sync:', error);
+            alert('Error al conectar con el servidor');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return 'Nunca';
+        const date = new Date(dateString);
+        return date.toLocaleString('es-CL', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const isRunning = syncStatus?.isRunning || isLoading;
+
+    return (
+        <div className="flex flex-col items-end">
+            <button
+                onClick={handleSync}
+                disabled={isRunning}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${isRunning
+                        ? 'bg-blue-500/20 text-blue-400 cursor-not-allowed'
+                        : 'bg-accent hover:bg-accent/80 text-white'
+                    }`}
+                title={isRunning ? syncStatus?.message : 'Sincronizar datos'}
+            >
+                <span className={isRunning ? 'animate-spin' : ''}>
+                    {isRunning ? '🔄' : '🔄'}
+                </span>
+                <span className="text-sm font-medium">
+                    {isRunning ? 'Sincronizando...' : 'Sincronizar'}
+                </span>
+                {isRunning && syncStatus?.progress > 0 && (
+                    <span className="text-xs">({syncStatus.progress}%)</span>
+                )}
+            </button>
+            <p className="text-xs text-slate-500 mt-1">
+                Última actualización: {formatDate(syncStatus?.lastSyncDate)}
+            </p>
+            {isRunning && syncStatus?.currentStep && (
+                <p className="text-xs text-blue-400 mt-1">
+                    {syncStatus.currentStep}
+                </p>
+            )}
+        </div>
+    );
+}
+
 function Layout({ children }) {
     return (
         <div className="flex h-screen bg-primary text-white overflow-hidden">
@@ -62,6 +154,7 @@ function Layout({ children }) {
                 <header className="h-16 bg-secondary border-b border-slate-700 flex items-center justify-between px-8">
                     <h2 className="text-lg font-medium text-slate-200">Panel de Control</h2>
                     <div className="flex items-center space-x-4">
+                        <SyncButton />
                         <button className="p-2 text-slate-400 hover:text-white">🔔</button>
                         <button className="p-2 text-slate-400 hover:text-white">⚙️</button>
                     </div>

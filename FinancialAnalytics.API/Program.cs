@@ -42,6 +42,9 @@ var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get
 builder.Services.AddSingleton<MLModelService>();
 builder.Services.AddHostedService<MLTrainingService>();
 
+// Registrar servicio de sincronización programada
+builder.Services.AddHostedService<ScheduledSyncService>();
+
 // Registrar otros servicios
 builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<ReportService>();
@@ -75,16 +78,16 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<FinancialDbContext>();
         var logger = services.GetRequiredService<ILogger<Program>>();
         
-        // Aplicar migraciones y datos de prueba
+        // Aplicar migraciones
         if (app.Environment.IsDevelopment())
         {
             context.Database.EnsureCreated();
             logger.LogInformation("Base de datos inicializada correctamente");
             
-            // Seed data
-            var seedingService = services.GetRequiredService<DataSeedingService>();
-            await seedingService.SeedDataAsync();
-            logger.LogInformation("Datos de prueba cargados correctamente");
+            // Datos de prueba deshabilitados - solo usar datos de sincronización legacy
+            // var seedingService = services.GetRequiredService<DataSeedingService>();
+            // await seedingService.SeedDataAsync();
+            // logger.LogInformation("Datos de prueba cargados correctamente");
         }
     }
     catch (Exception ex)

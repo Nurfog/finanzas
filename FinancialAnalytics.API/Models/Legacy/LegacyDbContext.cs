@@ -14,6 +14,7 @@ public class LegacyDbContext : DbContext
     public DbSet<LegacyStudent> Students { get; set; }
     public DbSet<LegacyDiagnostic> Diagnostics { get; set; }
     public DbSet<LegacyDiagnosticAnswer> DiagnosticAnswers { get; set; }
+    public DbSet<LegacyCourseDetail> CourseDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -73,6 +74,32 @@ public class LegacyDbContext : DbContext
             entity.Property(e => e.DiagnosticoId).HasColumnName("diagnosticoID");
             entity.Property(e => e.Respuesta).HasColumnName("respuesta");
         });
+
+        // Map to view vw_legacy_cursos_sedes
+        modelBuilder.Entity<LegacyCourseDetail>(entity =>
+        {
+            entity.ToTable("vw_legacy_cursos_sedes", "financial_analytics");
+            entity.HasNoKey(); // Views often don't have a single PK, or we can use IdCursoAbierto if unique per row? 
+                               // The view has one row per student/apoderado due to the join. 
+                               // So IdCursoAbierto is NOT unique. 
+                               // We should probably use HasNoKey or a composite key if we needed one.
+            entity.Property(e => e.IdCursoAbierto).HasColumnName("IdCursoAbierto");
+            entity.Property(e => e.Sede).HasColumnName("Sede");
+            entity.Property(e => e.NombreCurso).HasColumnName("NombreCurso");
+            entity.Property(e => e.Sala).HasColumnName("Sala");
+            entity.Property(e => e.Capacidad).HasColumnName("Capacidad");
+            entity.Property(e => e.AlumnosInscritos).HasColumnName("AlumnosInscritos");
+            entity.Property(e => e.CuposDisponibles).HasColumnName("CuposDisponibles");
+            entity.Property(e => e.DiasClases).HasColumnName("DiasClases");
+            entity.Property(e => e.FechaInicio).HasColumnName("FechaInicio");
+            entity.Property(e => e.FechaFin).HasColumnName("FechaFin");
+            entity.Property(e => e.HoraInicio).HasColumnName("HoraInicio");
+            entity.Property(e => e.HoraFin).HasColumnName("HoraFin");
+            entity.Property(e => e.IdAlumno).HasColumnName("idAlumno");
+            entity.Property(e => e.NombreAlumno).HasColumnName("Nombre Alumno");
+            entity.Property(e => e.NombreApoderado).HasColumnName("Nombre Apoderado");
+            entity.Property(e => e.EmailApoderado).HasColumnName("EmailApoderado");
+        });
     }
 }
 
@@ -92,7 +119,7 @@ public class LegacySale
     public string IdCliente { get; set; }
     public int Total { get; set; }
     public DateTime FechaVenta { get; set; }
-    public int IdSede { get; set; }
+    public string? IdSede { get; set; }
 }
 
 public class LegacyStudent
@@ -116,4 +143,24 @@ public class LegacyDiagnosticAnswer
     public int Id { get; set; }
     public int DiagnosticoId { get; set; }
     public string Respuesta { get; set; }
+}
+
+public class LegacyCourseDetail
+{
+    public int IdCursoAbierto { get; set; }
+    public string? Sede { get; set; }
+    public string? NombreCurso { get; set; }
+    public string? Sala { get; set; }
+    public int Capacidad { get; set; }
+    public int AlumnosInscritos { get; set; }
+    public int CuposDisponibles { get; set; }
+    public string? DiasClases { get; set; }
+    public DateTime FechaInicio { get; set; }
+    public DateTime FechaFin { get; set; }
+    public TimeSpan HoraInicio { get; set; }
+    public TimeSpan HoraFin { get; set; }
+    public string? IdAlumno { get; set; }
+    public string? NombreAlumno { get; set; }
+    public string? NombreApoderado { get; set; }
+    public string? EmailApoderado { get; set; }
 }

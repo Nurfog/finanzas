@@ -3,6 +3,7 @@ using FinancialAnalytics.API.Data;
 using FinancialAnalytics.API.Models;
 using FinancialAnalytics.API.Models.Legacy;
 using System.Text.Json;
+using FinancialAnalytics.API.Models;
 
 namespace FinancialAnalytics.API.Services;
 
@@ -20,6 +21,16 @@ public class LegacyDataSyncService
 
     public async Task SyncDataAsync()
     {
+        var status = SyncStatus.Instance;
+        
+        // Check if already running
+        if (status.IsRunning)
+        {
+            _logger.LogWarning("Sincronización ya en progreso, omitiendo");
+            return;
+        }
+        
+        status.StartSync();
         _logger.LogInformation("=== Iniciando sincronización de datos legacy ===");
         var startTime = DateTime.Now;
 
@@ -32,18 +43,31 @@ public class LegacyDataSyncService
 
         try
         {
+            status.UpdateProgress("Clientes", 10, "Sincronizando clientes...");
             await SyncCustomers(legacyContext, financialContext);
+            
+            status.UpdateProgress("Estudiantes", 25, "Sincronizando estudiantes...");
             await SyncStudents(legacyContext, financialContext);
+            
+            status.UpdateProgress("Sedes y Salas", 45, "Sincronizando sedes y salas...");
             await EnsureLocations(financialContext);
+            
+            status.UpdateProgress("Transacciones", 65, "Sincronizando transacciones...");
             await SyncTransactions(legacyContext, financialContext);
-            await SyncDiagnostics(legacyContext, financialContext);
+            
+            // Diagnósticos omitidos: vw_legacy_diagnostico no contiene IDs necesarios
+            // status.UpdateProgress("Diagnósticos", 85, "Sincronizando diagnósticos...");
+            // await SyncDiagnostics(legacyContext, financialContext);
 
             var duration = DateTime.Now - startTime;
             _logger.LogInformation($"=== Sincronización completada en {duration.TotalSeconds:F2} segundos ===");
+            
+            status.CompleteSync(true);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error fatal durante la sincronización");
+            status.CompleteSync(false, ex.Message);
             throw;
         }
     }
@@ -302,24 +326,98 @@ public class LegacyDataSyncService
     {
         try
         {
-            if (!await financial.Locations.AnyAsync())
+            _logger.LogInformation("Sincronizando sedes y salas desde legacy...");
+            var startTime = DateTime.Now;
+
+            using var scope = _serviceProvider.CreateScope();
+            var legacyContext = scope.ServiceProvider.GetRequiredService<LegacyDbContext>();
+
+            // Get unique locations from the view
+            var courseDetails = await legacyContext.CourseDetails.ToListAsync();
+            
+            var uniqueLocations = courseDetails
+                .GroupBy(cd => cd.Sede)
+                .Select(g => g.First())
+                .ToList();
+
+            var existingLocationNames = new HashSet<string>(
+                await financial.Locations.Select(l => l.Name).ToListAsync(),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            var newLocations = new List<Location>();
+            foreach (var loc in uniqueLocations)
             {
-                _logger.LogInformation("Inicializando sedes...");
-                var locations = new List<Location>
+                if (string.IsNullOrWhiteSpace(loc.Sede)) continue;
+                if (existingLocationNames.Contains(loc.Sede)) continue;
+
+                newLocations.Add(new Location
                 {
-                    new Location { Id = 1, Name = "Sede Central", Address = "Av. Principal 123", City = "Santiago", Country = "Chile", OpeningDate = new DateTime(2020, 1, 15) },
-                    new Location { Id = 2, Name = "Sede Norte", Address = "Calle Norte 456", City = "Santiago", Country = "Chile", OpeningDate = new DateTime(2021, 3, 10) },
-                    new Location { Id = 3, Name = "Sede Sur", Address = "Av. Sur 789", City = "Valparaíso", Country = "Chile", OpeningDate = new DateTime(2022, 6, 1) }
-                };
-                
-                await financial.Locations.AddRangeAsync(locations);
-                await financial.SaveChangesAsync();
-                _logger.LogInformation("✓ Sedes inicializadas");
+                    Name = loc.Sede,
+                    Address = "Dirección pendiente", // Could be enhanced if address is in another table
+                    City = "Santiago", // Default, could be enhanced
+                    Country = "Chile",
+                    OpeningDate = DateTime.Now.AddYears(-2) // Default
+                });
             }
+
+            if (newLocations.Any())
+            {
+                await financial.Locations.AddRangeAsync(newLocations);
+                await financial.SaveChangesAsync();
+                _logger.LogInformation($"✓ Sincronizadas {newLocations.Count} sedes");
+            }
+
+            // Now sync rooms
+            var locationMap = await financial.Locations.ToDictionaryAsync(l => l.Name, l => l.Id);
+            
+            var uniqueRooms = courseDetails
+                .Where(cd => !string.IsNullOrWhiteSpace(cd.Sala) && !string.IsNullOrWhiteSpace(cd.Sede))
+                .GroupBy(cd => new { cd.Sede, cd.Sala })
+                .Select(g => new { 
+                    Sede = g.Key.Sede, 
+                    Sala = g.Key.Sala, 
+                    Capacidad = g.First().Capacidad 
+                })
+                .ToList();
+
+            var existingRoomKeys = new HashSet<string>(
+                await financial.Rooms
+                    .Include(r => r.Location)
+                    .Select(r => $"{r.Location.Name}|{r.Name}")
+                    .ToListAsync(),
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            var newRooms = new List<Room>();
+            foreach (var room in uniqueRooms)
+            {
+                var key = $"{room.Sede}|{room.Sala}";
+                if (existingRoomKeys.Contains(key)) continue;
+                if (!locationMap.TryGetValue(room.Sede, out var locationId)) continue;
+
+                newRooms.Add(new Room
+                {
+                    Name = room.Sala,
+                    Capacity = room.Capacidad,
+                    RoomType = "Classroom", // Default
+                    LocationId = locationId
+                });
+            }
+
+            if (newRooms.Any())
+            {
+                await financial.Rooms.AddRangeAsync(newRooms);
+                await financial.SaveChangesAsync();
+                _logger.LogInformation($"✓ Sincronizadas {newRooms.Count} salas");
+            }
+
+            var duration = DateTime.Now - startTime;
+            _logger.LogInformation($"✓ Sincronización de sedes y salas completada en {duration.TotalSeconds:F2}s");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error inicializando sedes");
+            _logger.LogError(ex, "Error sincronizando sedes y salas");
             throw;
         }
     }
@@ -336,6 +434,10 @@ public class LegacyDataSyncService
 
             var legacyClients = await legacy.Clients.ToDictionaryAsync(c => c.IdCliente, c => c.Email);
             var customerMap = await financial.Customers.ToDictionaryAsync(c => c.Email.ToLower(), c => c.Id);
+            
+            // Create location map (Name -> Id)
+            var locationMap = await financial.Locations.ToDictionaryAsync(l => l.Name, l => l.Id, StringComparer.OrdinalIgnoreCase);
+            
             var newTransactions = new List<Transaction>();
 
             // Get existing transaction descriptions to avoid duplicates
@@ -360,10 +462,16 @@ public class LegacyDataSyncService
                     continue;
                 }
 
+                int? locationId = null;
+                if (!string.IsNullOrEmpty(sale.IdSede) && locationMap.TryGetValue(sale.IdSede, out var locId))
+                {
+                    locationId = locId;
+                }
+
                 newTransactions.Add(new Transaction
                 {
                     CustomerId = customerId,
-                    LocationId = ((sale.IdSede - 1) % 3) + 1, // Map to 1-3
+                    LocationId = locationId,
                     TransactionDate = sale.FechaVenta,
                     Amount = sale.Total,
                     TransactionType = "Sale",
