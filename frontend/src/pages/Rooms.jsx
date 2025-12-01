@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsService } from '../services/api';
 
+import InsightBadge from '../components/InsightBadge';
+
 export default function Rooms() {
     const [data, setData] = useState(null);
 
@@ -12,6 +14,12 @@ export default function Rooms() {
         <div className="space-y-6">
             <h2 className="text-2xl font-bold">Análisis de Uso de Salas</h2>
 
+            <InsightBadge type={data?.overallUtilization > 75 ? "warning" : "positive"}>
+                La utilización global es del <strong>{Math.round(data?.overallUtilization || 0)}%</strong>. {data?.overallUtilization > 75
+                    ? "Se observa una alta demanda en horarios punta, considere habilitar espacios adicionales."
+                    : "Existe capacidad ociosa que podría aprovecharse para nuevos cursos o eventos."}
+            </InsightBadge>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {data?.byRoom?.map((room, index) => (
                     <div key={index} className="card">
@@ -21,8 +29,8 @@ export default function Rooms() {
                                 <p className="text-sm text-slate-400">{room.locationName}</p>
                             </div>
                             <div className={`px-3 py-1 rounded-full text-sm font-bold ${room.averageUtilization > 80 ? 'bg-red-500/20 text-red-400' :
-                                    room.averageUtilization > 50 ? 'bg-green-500/20 text-green-400' :
-                                        'bg-yellow-500/20 text-yellow-400'
+                                room.averageUtilization > 50 ? 'bg-green-500/20 text-green-400' :
+                                    'bg-yellow-500/20 text-yellow-400'
                                 }`}>
                                 {Math.round(room.averageUtilization)}% Uso
                             </div>
@@ -37,8 +45,8 @@ export default function Rooms() {
                                 <div className="w-full bg-slate-700 rounded-full h-2">
                                     <div
                                         className={`h-2 rounded-full ${room.averageUtilization > 80 ? 'bg-red-500' :
-                                                room.averageUtilization > 50 ? 'bg-green-500' :
-                                                    'bg-yellow-500'
+                                            room.averageUtilization > 50 ? 'bg-green-500' :
+                                                'bg-yellow-500'
                                             }`}
                                         style={{ width: `${room.averageUtilization}%` }}
                                     ></div>

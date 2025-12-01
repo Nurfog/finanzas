@@ -1,0 +1,44 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: financial_db
+    environment:
+      MYSQL_ROOT_PASSWORD: apoca11
+      MYSQL_DATABASE: financial_analytics
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+
+  api:
+    build:
+      context: ./FinancialAnalytics.API
+      dockerfile: Dockerfile
+    container_name: financial_api
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=db;Port=3306;Database=financial_analytics;User=root;Password=apoca11;
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5245:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: financial_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_TARGET=http://api:8080
+    depends_on:
+      - api
+
+volumes:
+  db_data:

@@ -6,6 +6,7 @@ public class StudentProgress
     public int StudentId { get; set; }
     public DateTime AssessmentDate { get; set; }
     public string Subject { get; set; } = string.Empty;
+    public string AssessmentType { get; set; } = "Exam"; // Quiz, Exam, Project, Homework
     public decimal Score { get; set; } // 0-100
     public int AttendanceRate { get; set; } // Percentage
     public string PerformanceLevel { get; set; } = string.Empty; // Excellent, Good, Average, Poor

@@ -28,16 +28,15 @@ builder.Services.AddDbContext<LegacyDbContext>(options =>
 
 // Configurar CORS
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? new[] { "http://localhost:3000" };
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy.WithOrigins(allowedOrigins)
-              .AllowAnyMethod()
-              .AllowAnyHeader()
-              .AllowCredentials();
-    });
-});
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
 
 // Registrar Servicios de ML
 builder.Services.AddSingleton<MLModelService>();
@@ -47,6 +46,7 @@ builder.Services.AddHostedService<MLTrainingService>();
 builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<LegacyDataSyncService>();
+builder.Services.AddScoped<DataSeedingService>();
 
 var app = builder.Build();
 
@@ -61,7 +61,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 app.UseAuthorization();
 app.MapControllers();
@@ -81,10 +81,10 @@ using (var scope = app.Services.CreateScope())
             context.Database.EnsureCreated();
             logger.LogInformation("Base de datos inicializada correctamente");
             
-            // Sincronizar datos legacy (Deshabilitado para usar datos de prueba locales)
-            // var syncService = services.GetRequiredService<LegacyDataSyncService>();
-            // await syncService.SyncDataAsync();
-            // logger.LogInformation("Sincronización de datos legacy completada");
+            // Seed data
+            var seedingService = services.GetRequiredService<DataSeedingService>();
+            await seedingService.SeedDataAsync();
+            logger.LogInformation("Datos de prueba cargados correctamente");
         }
     }
     catch (Exception ex)
@@ -95,4 +95,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-

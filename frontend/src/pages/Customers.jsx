@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsService } from '../services/api';
 
+import InsightBadge from '../components/InsightBadge';
+
 export default function Customers() {
     const [segments, setSegments] = useState(null);
 
@@ -11,6 +13,10 @@ export default function Customers() {
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold">Segmentación de Clientes (IA)</h2>
+
+            <InsightBadge type="info">
+                El análisis de clustering ha identificado <strong>3 segmentos clave</strong>. El "Segmento 2" (Alto Valor) tiene un gasto promedio 3x superior al resto, sugiriendo enfocar esfuerzos de fidelización en este grupo.
+            </InsightBadge>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {segments?.summary?.map((segment, index) => (

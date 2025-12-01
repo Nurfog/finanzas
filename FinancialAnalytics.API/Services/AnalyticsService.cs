@@ -125,12 +125,22 @@ public class AnalyticsService
             for (int i = 1; i <= monthsAhead; i++)
             {
                 var futureDate = currentDate.AddMonths(i);
+                
+                // Proyectar un crecimiento conservador del 2% mensual para los inputs
+                // Esto permite que el modelo reaccione a la tendencia en lugar de recibir inputs estáticos
+                float projectedCustomers = (float)(avgCustomers * Math.Pow(1.02, i));
+                float projectedTransactions = (float)(avgTransactions * Math.Pow(1.02, i));
+
+                // Ajuste estacional simple para la proyección de inputs
+                if (futureDate.Month == 3 || futureDate.Month == 12) projectedTransactions *= 1.1f; // Picos en Marzo/Diciembre
+                if (futureDate.Month == 1 || futureDate.Month == 2) projectedTransactions *= 0.8f;  // Baja en verano
+
                 var input = new RevenueData
                 {
                     Month = futureDate.Month,
                     LocationId = locationId,
-                    CustomerCount = (float)avgCustomers,
-                    TransactionCount = (float)avgTransactions
+                    CustomerCount = projectedCustomers,
+                    TransactionCount = projectedTransactions
                 };
 
                 var prediction = predictionEngine.Predict(input);

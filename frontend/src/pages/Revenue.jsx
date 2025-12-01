@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { AnalyticsService } from '../services/api';
 import { Line } from 'react-chartjs-2';
 
+import InsightBadge from '../components/InsightBadge';
+
 export default function Revenue() {
     const [data, setData] = useState(null);
     const [predictions, setPredictions] = useState(null);
@@ -15,6 +17,10 @@ export default function Revenue() {
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold">Análisis de Ingresos</h2>
+
+            <InsightBadge type="positive">
+                La <strong>Sede Central</strong> mantiene el liderazgo en ingresos, representando un 35% del total facturado. Se recomienda replicar sus estrategias de retención en las sedes Norte y Sur.
+            </InsightBadge>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card">

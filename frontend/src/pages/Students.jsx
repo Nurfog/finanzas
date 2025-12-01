@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsService } from '../services/api';
 
+import InsightBadge from '../components/InsightBadge';
+
 export default function Students() {
     const [data, setData] = useState(null);
 
@@ -11,6 +13,10 @@ export default function Students() {
     return (
         <div className="space-y-6">
             <h2 className="text-2xl font-bold">Rendimiento Estudiantil</h2>
+
+            <InsightBadge type="positive">
+                El <strong>{Math.round((data?.byPerformance?.find(p => p.performanceLevel === 'Excellent')?.studentCount || 0) / (data?.totalStudents || 1) * 100)}%</strong> de los estudiantes mantiene un nivel de excelencia. Se sugiere implementar programas de mentoría liderados por estos alumnos.
+            </InsightBadge>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {data?.byPerformance?.map((perf, index) => (
@@ -45,9 +51,9 @@ export default function Students() {
                                     <td className="px-4 py-3 text-slate-400">{student.program}</td>
                                     <td className="px-4 py-3">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${student.latestPerformance === 'Excellent' ? 'bg-green-500/20 text-green-400' :
-                                                student.latestPerformance === 'Good' ? 'bg-blue-500/20 text-blue-400' :
-                                                    student.latestPerformance === 'Average' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                        'bg-red-500/20 text-red-400'
+                                            student.latestPerformance === 'Good' ? 'bg-blue-500/20 text-blue-400' :
+                                                student.latestPerformance === 'Average' ? 'bg-yellow-500/20 text-yellow-400' :
+                                                    'bg-red-500/20 text-red-400'
                                             }`}>
                                             {student.latestPerformance}
                                         </span>

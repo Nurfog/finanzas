@@ -8,6 +8,7 @@ public class Student
     public int CustomerId { get; set; }
     public DateTime EnrollmentDate { get; set; }
     public string Program { get; set; } = string.Empty; // Course or program name
+    public string Status { get; set; } = "Active"; // Active, Graduated, Dropped, Suspended
     public bool IsActive { get; set; } = true;
     
     // Navigation properties
