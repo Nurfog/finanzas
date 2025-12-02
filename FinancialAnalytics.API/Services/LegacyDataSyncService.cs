@@ -440,15 +440,33 @@ public class LegacyDataSyncService
             
             var newTransactions = new List<Transaction>();
 
-            // Get existing transaction descriptions to avoid duplicates
-            var existingDescriptions = new HashSet<string>(
-                await financial.Transactions.Select(t => t.Description).ToListAsync()
-            );
+            // Get existing transactions to update or skip
+            var existingTransactionsList = await financial.Transactions
+                .Where(t => t.Description.StartsWith("Legacy Sale"))
+                .ToListAsync();
+
+            var existingTransactions = existingTransactionsList
+                .GroupBy(t => t.Description)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var transactionsToAdd = new List<Transaction>();
+            var transactionsToUpdate = new List<Transaction>();
 
             foreach (var sale in legacySales)
             {
                 var description = $"Legacy Sale {sale.IdVenta}";
-                if (existingDescriptions.Contains(description)) continue;
+                var paymentMethod = sale.MetodosPago ?? "Efectivo"; // Default to Efectivo if null
+
+                if (existingTransactions.TryGetValue(description, out var existingTransaction))
+                {
+                    // Update if payment method is different or was "Legacy"
+                    if (existingTransaction.PaymentMethod != paymentMethod && existingTransaction.PaymentMethod == "Legacy")
+                    {
+                        existingTransaction.PaymentMethod = paymentMethod;
+                        transactionsToUpdate.Add(existingTransaction);
+                    }
+                    continue;
+                }
 
                 if (!legacyClients.TryGetValue(sale.IdCliente, out var email))
                 {
@@ -468,32 +486,45 @@ public class LegacyDataSyncService
                     locationId = locId;
                 }
 
-                newTransactions.Add(new Transaction
+                transactionsToAdd.Add(new Transaction
                 {
                     CustomerId = customerId,
                     LocationId = locationId,
                     TransactionDate = sale.FechaVenta,
                     Amount = sale.Total,
                     TransactionType = "Sale",
-                    PaymentMethod = "Legacy",
+                    PaymentMethod = paymentMethod,
                     Status = "Completed",
                     Description = description
                 });
             }
 
-            if (newTransactions.Any())
+            if (transactionsToUpdate.Any())
+            {
+                _logger.LogInformation($"Actualizando {transactionsToUpdate.Count} transacciones existentes con nuevo método de pago...");
+                // Update in batches
+                for (int i = 0; i < transactionsToUpdate.Count; i += BATCH_SIZE)
+                {
+                    var batch = transactionsToUpdate.Skip(i).Take(BATCH_SIZE).ToList();
+                    financial.Transactions.UpdateRange(batch);
+                    await financial.SaveChangesAsync();
+                }
+                _logger.LogInformation($"✓ Actualizadas {transactionsToUpdate.Count} transacciones.");
+            }
+
+            if (transactionsToAdd.Any())
             {
                 // Process in batches
-                for (int i = 0; i < newTransactions.Count; i += BATCH_SIZE)
+                for (int i = 0; i < transactionsToAdd.Count; i += BATCH_SIZE)
                 {
-                    var batch = newTransactions.Skip(i).Take(BATCH_SIZE).ToList();
+                    var batch = transactionsToAdd.Skip(i).Take(BATCH_SIZE).ToList();
                     await financial.Transactions.AddRangeAsync(batch);
                     await financial.SaveChangesAsync();
-                    _logger.LogInformation($"Transacciones: {Math.Min(i + BATCH_SIZE, newTransactions.Count)}/{newTransactions.Count}");
+                    _logger.LogInformation($"Transacciones nuevas: {Math.Min(i + BATCH_SIZE, transactionsToAdd.Count)}/{transactionsToAdd.Count}");
                 }
 
                 var duration = DateTime.Now - startTime;
-                _logger.LogInformation($"✓ Sincronizadas {newTransactions.Count} transacciones en {duration.TotalSeconds:F2}s");
+                _logger.LogInformation($"✓ Sincronizadas {transactionsToAdd.Count} nuevas transacciones en {duration.TotalSeconds:F2}s");
             }
             else
             {

@@ -31,7 +31,7 @@ public class AnalyticsService
             .Where(t => t.TransactionDate >= startDate && t.TransactionDate <= endDate && t.Status == "Completed")
             .ToListAsync();
 
-        var totalRevenue = transactions.Sum(t => t.Amount);
+        var totalRevenue = transactions.Sum(t => (long)t.Amount);
         var averageTransaction = transactions.Any() ? transactions.Average(t => t.Amount) : 0;
         var transactionCount = transactions.Count;
 
@@ -41,7 +41,7 @@ public class AnalyticsService
             {
                 Year = g.Key.Year,
                 Month = g.Key.Month,
-                Revenue = g.Sum(t => t.Amount),
+                Revenue = g.Sum(t => (long)t.Amount),
                 TransactionCount = g.Count()
             })
             .OrderBy(x => x.Year).ThenBy(x => x.Month)
@@ -80,7 +80,7 @@ public class AnalyticsService
             {
                 LocationId = g.Key.LocationId,
                 LocationName = g.Key.Name,
-                Revenue = g.Sum(t => t.Amount),
+                Revenue = g.Sum(t => (long)t.Amount),
                 TransactionCount = g.Count(),
                 AverageTransaction = g.Average(t => t.Amount)
             })
@@ -184,7 +184,7 @@ public class AnalyticsService
                 var customerData = new CustomerData
                 {
                     CustomerId = c.Id,
-                    TotalSpent = (float)c.Transactions.Sum(t => t.Amount),
+                    TotalSpent = (float)c.Transactions.Sum(t => (long)t.Amount),
                     TransactionFrequency = c.Transactions.Count,
                     DaysSinceRegistration = (float)(DateTime.Now - c.RegistrationDate).TotalDays,
                     AverageTransactionValue = c.Transactions.Any() ? (float)c.Transactions.Average(t => t.Amount) : 0

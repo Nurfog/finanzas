@@ -437,6 +437,41 @@ export default function Reports() {
         }
     };
 
+    const downloadExcelReport = async () => {
+        setGenerating(true);
+        try {
+            // Calculate date range (last 6 months by default)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 6);
+
+            const response = await ReportsService.downloadExcel(
+                startDate.toISOString().split('T')[0],
+                endDate.toISOString().split('T')[0]
+            );
+
+            // Create blob from response
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            // Create download link
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Reporte_Ingresos_${startDate.toISOString().split('T')[0]}_${endDate.toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error("Error downloading Excel report", error);
+            alert("Error al descargar el reporte Excel. Por favor intenta nuevamente.");
+        } finally {
+            setGenerating(false);
+        }
+    };
+
     const viewReport = async (id) => {
         console.log("Viewing report:", id);
         try {
@@ -478,6 +513,14 @@ export default function Reports() {
                         className="btn bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white shadow-lg shadow-purple-500/20"
                     >
                         + Salas
+                    </button>
+                    <button
+                        onClick={downloadExcelReport}
+                        disabled={generating}
+                        className="btn bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-lg shadow-emerald-500/20 flex items-center gap-2"
+                    >
+                        <span>📊</span>
+                        <span>Descargar Excel</span>
                     </button>
                 </div>
             </div>

@@ -83,7 +83,7 @@ public class MLTrainingService : BackgroundService
                     LocationId = (float)(g.Key.LocationId ?? 0),
                     CustomerCount = g.Select(t => t.CustomerId).Distinct().Count(),
                     TransactionCount = g.Count(),
-                    Revenue = (float)g.Sum(t => t.Amount)
+                    Revenue = (float)g.Sum(t => (long)t.Amount)
                 })
                 .ToList();
 
@@ -128,7 +128,7 @@ public class MLTrainingService : BackgroundService
             var customerData = customers.Select(c => new CustomerData
             {
                 CustomerId = c.Id,
-                TotalSpent = (float)c.Transactions.Sum(t => t.Amount),
+                TotalSpent = (float)c.Transactions.Sum(t => (long)t.Amount),
                 TransactionFrequency = c.Transactions.Count,
                 DaysSinceRegistration = (float)(DateTime.Now - c.RegistrationDate).TotalDays,
                 AverageTransactionValue = c.Transactions.Any() 

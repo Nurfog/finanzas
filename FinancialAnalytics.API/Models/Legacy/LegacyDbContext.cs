@@ -41,6 +41,7 @@ public class LegacyDbContext : DbContext
             entity.Property(e => e.Total).HasColumnName("Total");
             entity.Property(e => e.FechaVenta).HasColumnName("FechaVenta");
             entity.Property(e => e.IdSede).HasColumnName("idSede");
+            entity.Property(e => e.MetodosPago).HasColumnName("Formas De Pago");
         });
 
         // Map to view vw_legacy_alumnos (which references sige_sam_v3.alumnos)
@@ -120,6 +121,7 @@ public class LegacySale
     public int Total { get; set; }
     public DateTime FechaVenta { get; set; }
     public string? IdSede { get; set; }
+    public string? MetodosPago { get; set; }
 }
 
 public class LegacyStudent

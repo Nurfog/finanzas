@@ -57,7 +57,7 @@ public class ReportsController : ControllerBase
     }
 
     /// <summary>
-    /// Generate revenue report
+    /// Generate and download revenue report as Excel file
     /// </summary>
     [HttpPost("generate/revenue")]
     public async Task<IActionResult> GenerateRevenueReport(
@@ -66,11 +66,14 @@ public class ReportsController : ControllerBase
     {
         try
         {
-            startDate ??= DateTime.Now.AddMonths(-1);
+            startDate ??= DateTime.Now.AddMonths(-6);
             endDate ??= DateTime.Now;
 
-            var report = await _reportService.GenerateRevenueReport(startDate.Value, endDate.Value);
-            return CreatedAtAction(nameof(GetReport), new { id = report.Id }, report);
+            var excelService = HttpContext.RequestServices.GetRequiredService<ExcelReportService>();
+            var excelBytes = await excelService.GenerateRevenueReport(startDate, endDate);
+
+            var fileName = $"Reporte_Ingresos_{startDate:yyyyMMdd}_{endDate:yyyyMMdd}.xlsx";
+            return File(excelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
         catch (Exception ex)
         {

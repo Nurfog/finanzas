@@ -23,6 +23,10 @@ export const ReportsService = {
     generateStudent: (startDate, endDate) => api.post('/reports/generate/students', null, { params: { startDate, endDate } }),
     generateRoom: (startDate, endDate) => api.post('/reports/generate/rooms', null, { params: { startDate, endDate } }),
     generateCustomer: (startDate, endDate) => api.post('/reports/generate/customers', null, { params: { startDate, endDate } }),
+    downloadExcel: (startDate, endDate) => api.post('/reports/generate/revenue', null, { 
+        params: { startDate, endDate },
+        responseType: 'blob' // Important for binary data
+    }),
 };
 
 export default api;

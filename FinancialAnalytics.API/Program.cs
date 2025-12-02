@@ -48,6 +48,7 @@ builder.Services.AddHostedService<ScheduledSyncService>();
 // Registrar otros servicios
 builder.Services.AddScoped<AnalyticsService>();
 builder.Services.AddScoped<ReportService>();
+builder.Services.AddScoped<ExcelReportService>();
 builder.Services.AddScoped<LegacyDataSyncService>();
 builder.Services.AddScoped<DataSeedingService>();
 
