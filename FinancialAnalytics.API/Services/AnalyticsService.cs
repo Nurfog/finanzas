@@ -304,4 +304,239 @@ public class AnalyticsService
             TotalStudents = students.Count
         };
     }
+
+    // Advanced Room Analytics
+    public async Task<object> GetRoomUtilizationByLocation(int? locationId, DateTime startDate, DateTime endDate)
+    {
+        var query = _context.RoomUsages
+            .Include(r => r.Room)
+            .ThenInclude(room => room.Location)
+            .Where(r => r.StartTime >= startDate && r.StartTime <= endDate);
+
+        if (locationId.HasValue)
+        {
+            query = query.Where(r => r.Room.LocationId == locationId.Value);
+        }
+
+        var roomUsages = await query.ToListAsync();
+
+        var utilizationByRoom = roomUsages
+            .GroupBy(r => new { r.RoomId, RoomName = r.Room.Name, LocationName = r.Room.Location.Name, Capacity = r.Room.Capacity })
+            .Select(g => new
+            {
+                RoomId = g.Key.RoomId,
+                RoomName = g.Key.RoomName,
+                LocationName = g.Key.LocationName,
+                Capacity = g.Key.Capacity,
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                TotalSessions = g.Count(),
+                TotalAttendees = g.Sum(x => x.AttendeeCount),
+                AverageAttendees = g.Average(x => x.AttendeeCount),
+                TotalHours = g.Sum(x => (x.EndTime - x.StartTime).TotalHours)
+            })
+            .OrderByDescending(x => x.AverageUtilization)
+            .ToList();
+
+        var utilizationByLocation = roomUsages
+            .GroupBy(r => new { LocationId = r.Room.LocationId, LocationName = r.Room.Location.Name })
+            .Select(g => new
+            {
+                LocationId = g.Key.LocationId,
+                LocationName = g.Key.LocationName,
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                TotalSessions = g.Count(),
+                RoomCount = g.Select(x => x.RoomId).Distinct().Count()
+            })
+            .OrderByDescending(x => x.AverageUtilization)
+            .ToList();
+
+        return new
+        {
+            ByRoom = utilizationByRoom,
+            ByLocation = utilizationByLocation,
+            OverallUtilization = roomUsages.Any() ? roomUsages.Average(r => (double)r.UtilizationRate) : 0,
+            DateRange = new { StartDate = startDate, EndDate = endDate }
+        };
+    }
+
+    public async Task<object> GetRoomUsagePatternsByDayOfWeek(int? locationId)
+    {
+        var query = _context.RoomUsages
+            .Include(r => r.Room)
+            .ThenInclude(room => room.Location)
+            .AsQueryable();
+
+        if (locationId.HasValue)
+        {
+            query = query.Where(r => r.Room.LocationId == locationId.Value);
+        }
+
+        var roomUsages = await query.ToListAsync();
+
+        var patternsByDay = roomUsages
+            .GroupBy(r => r.StartTime.DayOfWeek)
+            .Select(g => new
+            {
+                DayOfWeek = g.Key.ToString(),
+                DayNumber = (int)g.Key,
+                SessionCount = g.Count(),
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                AverageAttendees = g.Average(x => x.AttendeeCount),
+                TotalAttendees = g.Sum(x => x.AttendeeCount),
+                PeakHour = g.GroupBy(x => x.StartTime.Hour)
+                           .OrderByDescending(h => h.Count())
+                           .Select(h => h.Key)
+                           .FirstOrDefault()
+            })
+            .OrderBy(x => x.DayNumber)
+            .ToList();
+
+        var patternsByHour = roomUsages
+            .GroupBy(r => r.StartTime.Hour)
+            .Select(g => new
+            {
+                Hour = g.Key,
+                SessionCount = g.Count(),
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                AverageAttendees = g.Average(x => x.AttendeeCount)
+            })
+            .OrderBy(x => x.Hour)
+            .ToList();
+
+        // Identify peak and low days
+        var peakDay = patternsByDay.OrderByDescending(x => x.SessionCount).FirstOrDefault();
+        var lowDay = patternsByDay.OrderBy(x => x.SessionCount).FirstOrDefault();
+
+        return new
+        {
+            ByDayOfWeek = patternsByDay,
+            ByHour = patternsByHour,
+            PeakDay = peakDay?.DayOfWeek,
+            LowDay = lowDay?.DayOfWeek,
+            TotalSessions = roomUsages.Count
+        };
+    }
+
+    public async Task<object> GetUnderutilizedRooms(decimal threshold = 0.5m)
+    {
+        var roomUsages = await _context.RoomUsages
+            .Include(r => r.Room)
+            .ThenInclude(room => room.Location)
+            .ToListAsync();
+
+        var roomStats = roomUsages
+            .GroupBy(r => new { r.RoomId, RoomName = r.Room.Name, LocationName = r.Room.Location.Name, Capacity = r.Room.Capacity })
+            .Select(g => new
+            {
+                RoomId = g.Key.RoomId,
+                RoomName = g.Key.RoomName,
+                LocationName = g.Key.LocationName,
+                Capacity = g.Key.Capacity,
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                TotalSessions = g.Count(),
+                AverageAttendees = g.Average(x => x.AttendeeCount),
+                TotalHours = g.Sum(x => (x.EndTime - x.StartTime).TotalHours),
+                WastedCapacity = g.Sum(x => x.Room.Capacity - x.AttendeeCount)
+            })
+            .Where(x => x.AverageUtilization < (double)threshold)
+            .OrderBy(x => x.AverageUtilization)
+            .ToList();
+
+        // Calculate opportunity cost (hours available but underutilized)
+        var totalWastedHours = roomStats.Sum(x => x.TotalHours * (1 - x.AverageUtilization));
+
+        return new
+        {
+            UnderutilizedRooms = roomStats,
+            Threshold = threshold,
+            TotalRoomsUnderutilized = roomStats.Count,
+            TotalWastedHours = totalWastedHours,
+            TotalWastedCapacity = roomStats.Sum(x => x.WastedCapacity)
+        };
+    }
+
+    public async Task<object> GetRoomOptimizationSuggestions()
+    {
+        var roomUsages = await _context.RoomUsages
+            .Include(r => r.Room)
+            .ThenInclude(room => room.Location)
+            .ToListAsync();
+
+        var roomStats = roomUsages
+            .GroupBy(r => new { r.RoomId, RoomName = r.Room.Name, LocationName = r.Room.Location.Name, Capacity = r.Room.Capacity })
+            .Select(g => new
+            {
+                RoomId = g.Key.RoomId,
+                RoomName = g.Key.RoomName,
+                LocationName = g.Key.LocationName,
+                Capacity = g.Key.Capacity,
+                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
+                AverageAttendees = g.Average(x => x.AttendeeCount),
+                TotalSessions = g.Count()
+            })
+            .ToList();
+
+        var suggestions = new List<object>();
+
+        // Suggestion 1: Rooms with capacity much larger than average attendance
+        var oversizedRooms = roomStats
+            .Where(r => r.Capacity > r.AverageAttendees * 2)
+            .Select(r => new
+            {
+                Type = "Downsize",
+                RoomName = r.RoomName,
+                LocationName = r.LocationName,
+                CurrentCapacity = r.Capacity,
+                AverageAttendees = Math.Round(r.AverageAttendees, 0),
+                Suggestion = $"Considerar reasignar cursos a sala más pequeña. Capacidad actual ({r.Capacity}) es el doble del promedio de asistentes ({Math.Round(r.AverageAttendees, 0)}).",
+                PotentialSavings = $"{Math.Round((1 - r.AverageAttendees / r.Capacity) * 100, 0)}% de espacio liberado"
+            });
+
+        suggestions.AddRange(oversizedRooms);
+
+        // Suggestion 2: Highly utilized rooms that might need expansion
+        var overcrowdedRooms = roomStats
+            .Where(r => r.AverageUtilization > 0.9)
+            .Select(r => new
+            {
+                Type = "Expand",
+                RoomName = r.RoomName,
+                LocationName = r.LocationName,
+                CurrentCapacity = r.Capacity,
+                AverageAttendees = Math.Round(r.AverageAttendees, 0),
+                Utilization = Math.Round(r.AverageUtilization * 100, 0),
+                Suggestion = $"Sala con alta demanda ({Math.Round(r.AverageUtilization * 100, 0)}% utilización). Considerar asignar sala más grande o dividir cursos.",
+                PotentialImpact = "Mejorar experiencia de estudiantes y permitir más inscripciones"
+            });
+
+        suggestions.AddRange(overcrowdedRooms);
+
+        // Suggestion 3: Underutilized rooms
+        var underutilizedRooms = roomStats
+            .Where(r => r.AverageUtilization < 0.5)
+            .Select(r => new
+            {
+                Type = "Consolidate",
+                RoomName = r.RoomName,
+                LocationName = r.LocationName,
+                Utilization = Math.Round(r.AverageUtilization * 100, 0),
+                TotalSessions = r.TotalSessions,
+                Suggestion = $"Sala subutilizada ({Math.Round(r.AverageUtilization * 100, 0)}% utilización). Considerar consolidar con otras salas o aumentar oferta de cursos.",
+                PotentialSavings = "Reducir costos operativos de mantenimiento"
+            });
+
+        suggestions.AddRange(underutilizedRooms);
+
+        return new
+        {
+            Suggestions = suggestions,
+            TotalSuggestions = suggestions.Count,
+            Summary = new
+            {
+                RoomsToDownsize = oversizedRooms.Count(),
+                RoomsToExpand = overcrowdedRooms.Count(),
+                RoomsToConsolidate = underutilizedRooms.Count()
+            }
+        };
+    }
 }

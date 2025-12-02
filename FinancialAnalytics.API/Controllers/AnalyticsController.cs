@@ -129,4 +129,81 @@ public class AnalyticsController : ControllerBase
             return StatusCode(500, new { error = "Internal server error" });
         }
     }
+
+    /// <summary>
+    /// Get room utilization by location and period
+    /// </summary>
+    [HttpGet("rooms/utilization")]
+    public async Task<IActionResult> GetRoomUtilization(
+        [FromQuery] int? locationId = null,
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
+    {
+        try
+        {
+            var start = startDate ?? DateTime.Now.AddMonths(-3);
+            var end = endDate ?? DateTime.Now;
+            var result = await _analyticsService.GetRoomUtilizationByLocation(locationId, start, end);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting room utilization");
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get room usage patterns by day of week
+    /// </summary>
+    [HttpGet("rooms/patterns")]
+    public async Task<IActionResult> GetRoomPatterns([FromQuery] int? locationId = null)
+    {
+        try
+        {
+            var result = await _analyticsService.GetRoomUsagePatternsByDayOfWeek(locationId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting room usage patterns");
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get underutilized rooms
+    /// </summary>
+    [HttpGet("rooms/underutilized")]
+    public async Task<IActionResult> GetUnderutilizedRooms([FromQuery] decimal threshold = 0.5m)
+    {
+        try
+        {
+            var result = await _analyticsService.GetUnderutilizedRooms(threshold);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting underutilized rooms");
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
+
+    /// <summary>
+    /// Get room optimization suggestions
+    /// </summary>
+    [HttpGet("rooms/optimization")]
+    public async Task<IActionResult> GetRoomOptimizationSuggestions()
+    {
+        try
+        {
+            var result = await _analyticsService.GetRoomOptimizationSuggestions();
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting room optimization suggestions");
+            return StatusCode(500, new { error = "Internal server error" });
+        }
+    }
 }

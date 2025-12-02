@@ -87,34 +87,17 @@ public class SyncController : ControllerBase
             var connection = context.Database.GetDbConnection();
             await connection.OpenAsync();
             using var cmd = connection.CreateCommand();
-            // Check legacy sales schema
-            cmd.CommandText = "SELECT * FROM vw_legacy_ventas LIMIT 1";
-            using (var reader = await cmd.ExecuteReaderAsync())
+            // Check RoomUsages count
+            using var cmd3 = connection.CreateCommand();
+            cmd3.CommandText = "SELECT COUNT(*) as Count, 'RoomUsages' as Source FROM RoomUsages";
+            using (var reader = await cmd3.ExecuteReaderAsync())
             {
                 while (await reader.ReadAsync())
                 {
                     var row = new Dictionary<string, object>();
-                    row["Source"] = "LegacyView";
                     for (int i = 0; i < reader.FieldCount; i++)
                     {
                         row[reader.GetName(i)] = reader.GetValue(i);
-                    }
-                    result.Add(row);
-                }
-            }
-
-            // Check existing transactions
-            using var cmd2 = connection.CreateCommand();
-            cmd2.CommandText = "SELECT Id, PaymentMethod, Description FROM Transactions WHERE Description LIKE 'Legacy Sale%' LIMIT 5";
-            using (var reader2 = await cmd2.ExecuteReaderAsync())
-            {
-                while (await reader2.ReadAsync())
-                {
-                    var row = new Dictionary<string, object>();
-                    row["Source"] = "TransactionsTable";
-                    for (int i = 0; i < reader2.FieldCount; i++)
-                    {
-                        row[reader2.GetName(i)] = reader2.GetValue(i);
                     }
                     result.Add(row);
                 }

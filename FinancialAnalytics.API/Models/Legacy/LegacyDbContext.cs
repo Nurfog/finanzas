@@ -15,6 +15,7 @@ public class LegacyDbContext : DbContext
     public DbSet<LegacyDiagnostic> Diagnostics { get; set; }
     public DbSet<LegacyDiagnosticAnswer> DiagnosticAnswers { get; set; }
     public DbSet<LegacyCourseDetail> CourseDetails { get; set; }
+    public DbSet<LegacyClass> Classes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +102,19 @@ public class LegacyDbContext : DbContext
             entity.Property(e => e.NombreApoderado).HasColumnName("Nombre Apoderado");
             entity.Property(e => e.EmailApoderado).HasColumnName("EmailApoderado");
         });
+
+        // Map to view vw_legacy_clases
+        modelBuilder.Entity<LegacyClass>(entity =>
+        {
+            entity.ToTable("vw_legacy_clases", "financial_analytics");
+            entity.HasNoKey();
+            entity.Property(e => e.IdCurso).HasColumnName("Id Curso");
+            entity.Property(e => e.IdentificacionAlumno).HasColumnName("Identificacion Alumno");
+            entity.Property(e => e.FechaAsistencia).HasColumnName("Fecha Asistencia");
+            entity.Property(e => e.HoraIngreso).HasColumnName("Hora De Ingreso");
+            entity.Property(e => e.EstadoAsistencia).HasColumnName("Estado Asistencia");
+            entity.Property(e => e.Sala).HasColumnName("Nombre");
+        });
     }
 }
 
@@ -165,4 +179,14 @@ public class LegacyCourseDetail
     public string? NombreAlumno { get; set; }
     public string? NombreApoderado { get; set; }
     public string? EmailApoderado { get; set; }
+}
+
+public class LegacyClass
+{
+    public int IdCurso { get; set; }
+    public string IdentificacionAlumno { get; set; }
+    public DateTime FechaAsistencia { get; set; }
+    public TimeSpan HoraIngreso { get; set; }
+    public string EstadoAsistencia { get; set; }
+    public string Sala { get; set; }
 }

@@ -54,6 +54,9 @@ public class LegacyDataSyncService
             
             status.UpdateProgress("Transacciones", 65, "Sincronizando transacciones...");
             await SyncTransactions(legacyContext, financialContext);
+
+            status.UpdateProgress("Uso de Salas", 80, "Sincronizando uso de salas...");
+            await SyncRoomUsage(legacyContext, financialContext);
             
             // Diagnósticos omitidos: vw_legacy_diagnostico no contiene IDs necesarios
             // status.UpdateProgress("Diagnósticos", 85, "Sincronizando diagnósticos...");
@@ -536,5 +539,152 @@ public class LegacyDataSyncService
             _logger.LogError(ex, $"Error sincronizando transacciones: {ex.InnerException?.Message}");
             throw;
         }
+    }
+    private async Task SyncRoomUsage(LegacyDbContext legacy, FinancialDbContext financial)
+    {
+        try
+        {
+            _logger.LogInformation("Sincronizando uso de salas...");
+            var startTime = DateTime.Now;
+
+            // 1. Get class schedules (days/hours) from CourseDetails
+            var courseDetails = await legacy.CourseDetails
+                .Where(c => !string.IsNullOrEmpty(c.Sede) && !string.IsNullOrEmpty(c.Sala))
+                .ToListAsync();
+
+            _logger.LogInformation($"Encontrados {courseDetails.Count} registros de cursos");
+
+            // Group by Course/Room to get unique schedules
+            var schedules = courseDetails
+                .GroupBy(c => new { c.Sede, c.Sala, c.IdCursoAbierto })
+                .Select(g => g.First())
+                .ToList();
+
+            _logger.LogInformation($"Procesando {schedules.Count} horarios únicos");
+
+            // 2. Get actual attendance/classes
+            var classes = await legacy.Classes.ToListAsync();
+            _logger.LogInformation($"Encontradas {classes.Count} clases/asistencias");
+
+            // 3. Map Rooms
+            var rooms = await financial.Rooms
+                .Include(r => r.Location)
+                .ToDictionaryAsync(r => $"{r.Location.Name}|{r.Name}", r => r.Id);
+
+            _logger.LogInformation($"Mapeadas {rooms.Count} salas");
+
+            var newRoomUsages = new List<RoomUsage>();
+            var existingUsages = new HashSet<string>(
+                await financial.RoomUsages.Select(r => $"{r.RoomId}|{r.StartTime:yyyy-MM-dd HH:mm}").ToListAsync()
+            );
+
+            int processedSchedules = 0;
+            foreach (var schedule in schedules)
+            {
+                var roomKey = $"{schedule.Sede}|{schedule.Sala}";
+                if (!rooms.TryGetValue(roomKey, out var roomId))
+                {
+                    _logger.LogWarning($"Sala no encontrada: {roomKey}");
+                    continue;
+                }
+
+                // Parse days (e.g., "LU MI VI")
+                var days = ParseDays(schedule.DiasClases);
+                
+                if (!days.Any())
+                {
+                    _logger.LogWarning($"No se pudieron parsear días para curso {schedule.IdCursoAbierto}: '{schedule.DiasClases}'");
+                    continue;
+                }
+
+                // Limit date range to avoid excessive iterations
+                var dateRange = (schedule.FechaFin - schedule.FechaInicio).Days;
+                if (dateRange > 365)
+                {
+                    _logger.LogWarning($"Rango de fechas muy grande para curso {schedule.IdCursoAbierto}: {dateRange} días. Limitando a 365.");
+                    schedule.FechaFin = schedule.FechaInicio.AddDays(365);
+                }
+
+                // Iterate through date range
+                for (var date = schedule.FechaInicio; date <= schedule.FechaFin; date = date.AddDays(1))
+                {
+                    if (!days.Contains(date.DayOfWeek)) continue;
+
+                    var startDateTime = date.Date.Add(schedule.HoraInicio);
+                    var endDateTime = date.Date.Add(schedule.HoraFin);
+                    
+                    var usageKey = $"{roomId}|{startDateTime:yyyy-MM-dd HH:mm}";
+                    if (existingUsages.Contains(usageKey)) continue;
+
+                    // Calculate attendees for this specific course instance
+                    var attendeeCount = classes.Count(c => 
+                        c.IdCurso == schedule.IdCursoAbierto && 
+                        c.FechaAsistencia.Date == date.Date &&
+                        c.EstadoAsistencia.Contains("Present"));
+
+                    if (attendeeCount == 0) attendeeCount = schedule.AlumnosInscritos;
+
+                    newRoomUsages.Add(new RoomUsage
+                    {
+                        RoomId = roomId,
+                        StartTime = startDateTime,
+                        EndTime = endDateTime,
+                        Purpose = $"Class: {schedule.NombreCurso}",
+                        AttendeeCount = attendeeCount,
+                        UtilizationRate = schedule.Capacidad > 0 ? (decimal)attendeeCount / schedule.Capacidad : 0
+                    });
+                    
+                    existingUsages.Add(usageKey);
+                }
+
+                processedSchedules++;
+                if (processedSchedules % 100 == 0)
+                {
+                    _logger.LogInformation($"Procesados {processedSchedules}/{schedules.Count} horarios, {newRoomUsages.Count} usos generados");
+                }
+            }
+
+            _logger.LogInformation($"Total de usos de sala a insertar: {newRoomUsages.Count}");
+
+            if (newRoomUsages.Any())
+            {
+                for (int i = 0; i < newRoomUsages.Count; i += BATCH_SIZE)
+                {
+                    var batch = newRoomUsages.Skip(i).Take(BATCH_SIZE).ToList();
+                    await financial.RoomUsages.AddRangeAsync(batch);
+                    await financial.SaveChangesAsync();
+                    _logger.LogInformation($"Uso de salas: {Math.Min(i + BATCH_SIZE, newRoomUsages.Count)}/{newRoomUsages.Count}");
+                }
+                
+                var duration = DateTime.Now - startTime;
+                _logger.LogInformation($"✓ Sincronizados {newRoomUsages.Count} registros de uso de salas en {duration.TotalSeconds:F2}s");
+            }
+            else
+            {
+                _logger.LogInformation("No hay nuevos registros de uso de salas");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sincronizando uso de salas");
+            // Don't throw, allow other syncs to proceed
+        }
+    }
+
+    private List<DayOfWeek> ParseDays(string? dias)
+    {
+        var result = new List<DayOfWeek>();
+        if (string.IsNullOrEmpty(dias)) return result;
+
+        dias = dias.ToUpper();
+        if (dias.Contains("LU")) result.Add(DayOfWeek.Monday);
+        if (dias.Contains("MA")) result.Add(DayOfWeek.Tuesday);
+        if (dias.Contains("MI")) result.Add(DayOfWeek.Wednesday);
+        if (dias.Contains("JU")) result.Add(DayOfWeek.Thursday);
+        if (dias.Contains("VI")) result.Add(DayOfWeek.Friday);
+        if (dias.Contains("SA")) result.Add(DayOfWeek.Saturday);
+        if (dias.Contains("DO")) result.Add(DayOfWeek.Sunday);
+
+        return result;
     }
 }
