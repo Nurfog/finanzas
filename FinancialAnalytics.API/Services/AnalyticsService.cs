@@ -162,10 +162,13 @@ public class AnalyticsService
     }
 
     // Análisis de Clientes
-    public async Task<object> GetCustomerSegments()
+    public async Task<object> GetCustomerSegments(DateTime? startDate = null, DateTime? endDate = null)
     {
         try
         {
+            startDate ??= DateTime.Now.AddMonths(-6);
+            endDate ??= DateTime.Now;
+
             var model = _mlService.LoadModel("CustomerSegmentation", out var schema);
             if (model == null)
             {
@@ -176,18 +179,26 @@ public class AnalyticsService
 
             var customers = await _context.Customers
                 .Include(c => c.Transactions)
-                .Where(c => c.IsActive)
                 .ToListAsync();
 
             var segments = customers.Select(c =>
             {
+                // Filter transactions by date range
+                var relevantTransactions = c.Transactions
+                    .Where(t => t.TransactionDate >= startDate && t.TransactionDate <= endDate)
+                    .ToList();
+
+                // If no transactions in range, we might still want to classify them based on history? 
+                // Or maybe treat them as "Inactive" for this period?
+                // For now, let's calculate stats based on the period. If 0 transactions, stats are 0.
+                
                 var customerData = new CustomerData
                 {
                     CustomerId = c.Id,
-                    TotalSpent = (float)c.Transactions.Sum(t => (long)t.Amount),
-                    TransactionFrequency = c.Transactions.Count,
-                    DaysSinceRegistration = (float)(DateTime.Now - c.RegistrationDate).TotalDays,
-                    AverageTransactionValue = c.Transactions.Any() ? (float)c.Transactions.Average(t => t.Amount) : 0
+                    TotalSpent = (float)relevantTransactions.Sum(t => (long)t.Amount),
+                    TransactionFrequency = relevantTransactions.Count,
+                    DaysSinceRegistration = (float)(DateTime.Now - c.RegistrationDate).TotalDays, // This remains total history
+                    AverageTransactionValue = relevantTransactions.Any() ? (float)relevantTransactions.Average(t => t.Amount) : 0
                 };
 
                 var prediction = predictionEngine.Predict(customerData);
@@ -223,11 +234,16 @@ public class AnalyticsService
     }
 
     // Análisis de Salas
-    public async Task<object> GetRoomUsageAnalytics()
+    public async Task<object> GetRoomUsageAnalytics(DateTime? startDate = null, DateTime? endDate = null)
     {
+        startDate ??= DateTime.Now.AddMonths(-3);
+        endDate ??= DateTime.Now;
+
         var roomUsages = await _context.RoomUsages
             .Include(r => r.Room)
             .ThenInclude(room => room.Location)
+            .Where(r => r.StartTime >= startDate && r.EndTime <= endDate)
+            .Where(r => !r.Room.Location.Name.Contains("ONLINE")) // Maintain consistency with other endpoints
             .ToListAsync();
 
         var byRoom = roomUsages
@@ -263,17 +279,43 @@ public class AnalyticsService
     }
 
     // Análisis de Estudiantes
-    public async Task<object> GetStudentAnalytics()
+    public async Task<object> GetStudentAnalytics(DateTime? startDate = null, DateTime? endDate = null)
     {
-        var students = await _context.Students
+        startDate ??= DateTime.Now.AddMonths(-6);
+        endDate ??= DateTime.Now;
+
+        // We want students who have activity in this period
+        // Logic: A student is active if their course (assumed 6 months duration) overlaps with the selected range
+        // AND they are marked as Active in the system.
+        var allActiveStudents = await _context.Students
             .Include(s => s.ProgressRecords)
             .Where(s => s.IsActive)
             .ToListAsync();
 
-        var studentStats = students.Select(s =>
+        var studentStats = allActiveStudents.Select(s =>
         {
-            var latestProgress = s.ProgressRecords.OrderByDescending(p => p.AssessmentDate).FirstOrDefault();
-            var averageScore = s.ProgressRecords.Any() ? s.ProgressRecords.Average(p => p.Score) : 0;
+            // Assume course duration is 6 months from enrollment
+            var courseStart = s.EnrollmentDate;
+            var courseEnd = s.EnrollmentDate.AddMonths(6);
+
+            // Check for overlap: (StartA <= EndB) and (EndA >= StartB)
+            bool isCourseActiveInRange = courseStart <= endDate && courseEnd >= startDate;
+
+            if (!isCourseActiveInRange) return null;
+
+            // For stats, we still only look at progress records within the range (or all if we want cumulative?)
+            // User likely wants to see performance *during* that time, or latest status.
+            // Let's show relevant records for the period, but if none, still show the student as active (with 0 score).
+            var relevantRecords = s.ProgressRecords
+                .Where(p => p.AssessmentDate >= startDate && p.AssessmentDate <= endDate)
+                .ToList();
+
+            var latestProgress = relevantRecords.OrderByDescending(p => p.AssessmentDate).FirstOrDefault() 
+                                 ?? s.ProgressRecords.OrderByDescending(p => p.AssessmentDate).FirstOrDefault(); // Fallback to latest overall if none in range?
+            
+            // Actually, for "Average Score" in this period, we should only use relevant records.
+            // If no records in period, average is 0 or N/A.
+            var averageScore = relevantRecords.Any() ? relevantRecords.Average(p => p.Score) : 0;
 
             return new
             {
@@ -283,9 +325,11 @@ public class AnalyticsService
                 AverageScore = Math.Round(averageScore, 2),
                 LatestScore = latestProgress?.Score ?? 0,
                 LatestPerformance = latestProgress?.PerformanceLevel ?? "N/A",
-                AssessmentCount = s.ProgressRecords.Count
+                AssessmentCount = relevantRecords.Count
             };
-        }).ToList();
+        })
+        .Where(s => s != null) // Filter out students whose course wasn't active
+        .ToList();
 
         var byPerformance = studentStats
             .GroupBy(s => s.LatestPerformance)
@@ -301,7 +345,7 @@ public class AnalyticsService
         {
             Students = studentStats,
             ByPerformance = byPerformance,
-            TotalStudents = students.Count
+            TotalStudents = studentStats.Count
         };
     }
 
@@ -313,48 +357,77 @@ public class AnalyticsService
             .ThenInclude(room => room.Location)
             .Where(r => r.StartTime >= startDate && r.StartTime <= endDate);
 
+        // Exclude Online rooms for physical room analysis
+        query = query.Where(r => !r.Room.Location.Name.Contains("ONLINE"));
+
         if (locationId.HasValue)
         {
             query = query.Where(r => r.Room.LocationId == locationId.Value);
         }
 
         var roomUsages = await query.ToListAsync();
+        
+        // Calculate total available hours in the period (8:30 to 21:15 = 12.75 hours/day)
+        var totalDays = (endDate - startDate).TotalDays;
+        var availableHoursPerRoom = totalDays * 12.75; 
 
         var utilizationByRoom = roomUsages
             .GroupBy(r => new { r.RoomId, RoomName = r.Room.Name, LocationName = r.Room.Location.Name, Capacity = r.Room.Capacity })
-            .Select(g => new
-            {
-                RoomId = g.Key.RoomId,
-                RoomName = g.Key.RoomName,
-                LocationName = g.Key.LocationName,
-                Capacity = g.Key.Capacity,
-                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
-                TotalSessions = g.Count(),
-                TotalAttendees = g.Sum(x => x.AttendeeCount),
-                AverageAttendees = g.Average(x => x.AttendeeCount),
-                TotalHours = g.Sum(x => (x.EndTime - x.StartTime).TotalHours)
+            .Select(g => {
+                var totalHoursUsed = g.Sum(x => (x.EndTime - x.StartTime).TotalHours);
+                var capacityUtilization = g.Average(x => (double)x.UtilizationRate); // How full is it when used
+                var timeUtilization = totalHoursUsed / availableHoursPerRoom; // How often is it used
+                
+                return new
+                {
+                    RoomId = g.Key.RoomId,
+                    RoomName = g.Key.RoomName,
+                    LocationName = g.Key.LocationName,
+                    Capacity = g.Key.Capacity,
+                    CapacityUtilization = capacityUtilization,
+                    TimeUtilization = timeUtilization,
+                    CombinedEfficiency = capacityUtilization * timeUtilization,
+                    TotalSessions = g.Count(),
+                    TotalAttendees = g.Sum(x => x.AttendeeCount),
+                    AverageAttendees = g.Average(x => x.AttendeeCount),
+                    TotalHours = totalHoursUsed
+                };
             })
-            .OrderByDescending(x => x.AverageUtilization)
+            .OrderByDescending(x => x.CombinedEfficiency)
             .ToList();
 
         var utilizationByLocation = roomUsages
             .GroupBy(r => new { LocationId = r.Room.LocationId, LocationName = r.Room.Location.Name })
-            .Select(g => new
-            {
-                LocationId = g.Key.LocationId,
-                LocationName = g.Key.LocationName,
-                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
-                TotalSessions = g.Count(),
-                RoomCount = g.Select(x => x.RoomId).Distinct().Count()
+            .Select(g => {
+                var roomCount = g.Select(x => x.RoomId).Distinct().Count();
+                var totalHoursUsed = g.Sum(x => (x.EndTime - x.StartTime).TotalHours);
+                var totalAvailableHours = roomCount * availableHoursPerRoom;
+
+                return new
+                {
+                    LocationId = g.Key.LocationId,
+                    LocationName = g.Key.LocationName,
+                    CapacityUtilization = g.Average(x => (double)x.UtilizationRate),
+                    TimeUtilization = totalAvailableHours > 0 ? totalHoursUsed / totalAvailableHours : 0,
+                    TotalSessions = g.Count(),
+                    RoomCount = roomCount
+                };
             })
-            .OrderByDescending(x => x.AverageUtilization)
+            .OrderByDescending(x => x.TimeUtilization)
             .ToList();
+
+        // Calculate Overall Time Utilization
+        var totalHoursAllRooms = roomUsages.Sum(x => (x.EndTime - x.StartTime).TotalHours);
+        var totalRoomsCount = roomUsages.Select(x => x.RoomId).Distinct().Count();
+        var totalGlobalAvailableHours = totalRoomsCount * availableHoursPerRoom;
+        var overallTimeUtilization = totalGlobalAvailableHours > 0 ? totalHoursAllRooms / totalGlobalAvailableHours : 0;
 
         return new
         {
             ByRoom = utilizationByRoom,
             ByLocation = utilizationByLocation,
-            OverallUtilization = roomUsages.Any() ? roomUsages.Average(r => (double)r.UtilizationRate) : 0,
+            OverallCapacityUtilization = roomUsages.Any() ? roomUsages.Average(r => (double)r.UtilizationRate) : 0,
+            OverallTimeUtilization = overallTimeUtilization,
             DateRange = new { StartDate = startDate, EndDate = endDate }
         };
     }
@@ -364,6 +437,7 @@ public class AnalyticsService
         var query = _context.RoomUsages
             .Include(r => r.Room)
             .ThenInclude(room => room.Location)
+            .Where(r => !r.Room.Location.Name.Contains("ONLINE")) // Exclude Online rooms
             .AsQueryable();
 
         if (locationId.HasValue)
@@ -422,28 +496,47 @@ public class AnalyticsService
         var roomUsages = await _context.RoomUsages
             .Include(r => r.Room)
             .ThenInclude(room => room.Location)
+            .Where(r => !r.Room.Location.Name.Contains("ONLINE")) // Exclude Online rooms
             .ToListAsync();
+
+        // Calculate available hours (assuming 30 days analysis for this specific endpoint if not specified, 
+        // but since we don't have dates here, we'll use the range found in data or default to 12h/day)
+        // For accurate TimeUtilization we need the date range. 
+        // Let's assume the data passed is within a relevant range or calculate based on min/max date in data.
+        var minDate = roomUsages.Any() ? roomUsages.Min(r => r.StartTime) : DateTime.Now;
+        var maxDate = roomUsages.Any() ? roomUsages.Max(r => r.EndTime) : DateTime.Now;
+        var totalDays = (maxDate - minDate).TotalDays;
+        if (totalDays < 1) totalDays = 1;
+        var availableHoursPerRoom = totalDays * 12.75; // 8:30 to 21:15
 
         var roomStats = roomUsages
             .GroupBy(r => new { r.RoomId, RoomName = r.Room.Name, LocationName = r.Room.Location.Name, Capacity = r.Room.Capacity })
-            .Select(g => new
-            {
-                RoomId = g.Key.RoomId,
-                RoomName = g.Key.RoomName,
-                LocationName = g.Key.LocationName,
-                Capacity = g.Key.Capacity,
-                AverageUtilization = g.Average(x => (double)x.UtilizationRate),
-                TotalSessions = g.Count(),
-                AverageAttendees = g.Average(x => x.AttendeeCount),
-                TotalHours = g.Sum(x => (x.EndTime - x.StartTime).TotalHours),
-                WastedCapacity = g.Sum(x => x.Room.Capacity - x.AttendeeCount)
+            .Select(g => {
+                var totalHoursUsed = g.Sum(x => (x.EndTime - x.StartTime).TotalHours);
+                var capacityUtilization = g.Average(x => (double)x.UtilizationRate);
+                var timeUtilization = totalHoursUsed / availableHoursPerRoom;
+
+                return new
+                {
+                    RoomId = g.Key.RoomId,
+                    RoomName = g.Key.RoomName,
+                    LocationName = g.Key.LocationName,
+                    Capacity = g.Key.Capacity,
+                    CapacityUtilization = capacityUtilization,
+                    TimeUtilization = timeUtilization,
+                    CombinedEfficiency = capacityUtilization * timeUtilization,
+                    TotalSessions = g.Count(),
+                    AverageAttendees = g.Average(x => x.AttendeeCount),
+                    TotalHours = totalHoursUsed,
+                    WastedCapacity = g.Sum(x => x.Room.Capacity - x.AttendeeCount)
+                };
             })
-            .Where(x => x.AverageUtilization < (double)threshold)
-            .OrderBy(x => x.AverageUtilization)
+            .Where(x => x.TimeUtilization < (double)threshold) // Use TimeUtilization for "Underutilized"
+            .OrderBy(x => x.TimeUtilization)
             .ToList();
 
         // Calculate opportunity cost (hours available but underutilized)
-        var totalWastedHours = roomStats.Sum(x => x.TotalHours * (1 - x.AverageUtilization));
+        var totalWastedHours = roomStats.Sum(x => (availableHoursPerRoom - x.TotalHours));
 
         return new
         {
@@ -460,6 +553,7 @@ public class AnalyticsService
         var roomUsages = await _context.RoomUsages
             .Include(r => r.Room)
             .ThenInclude(room => room.Location)
+            .Where(r => !r.Room.Location.Name.Contains("ONLINE")) // Exclude Online rooms
             .ToListAsync();
 
         var roomStats = roomUsages

@@ -40,9 +40,11 @@ function KPICard({ title, value, trend, icon, color, gradient }) {
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${gradient} shadow-lg shadow-${color}-500/20`}>
                         <span className="text-2xl">{icon}</span>
                     </div>
-                    <div className={`flex items-center px-2 py-1 rounded-lg text-xs font-medium ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                        {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
-                    </div>
+                    {trend !== 0 && (
+                        <div className={`flex items-center px-2 py-1 rounded-lg text-xs font-medium ${trend >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                            {trend >= 0 ? "↑" : "↓"} {Math.abs(trend)}%
+                        </div>
+                    )}
                 </div>
 
                 <div>
@@ -75,20 +77,31 @@ function InsightBadge({ type, children }) {
     );
 }
 
+import DateRangeSelector from '../components/DateRangeSelector';
+
 export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [revenueData, setRevenueData] = useState(null);
     const [roomData, setRoomData] = useState(null);
     const [studentData, setStudentData] = useState(null);
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 6); // Default to 6 months to ensure data visibility
+        return d;
+    });
+    const [endDate, setEndDate] = useState(() => new Date());
 
     useEffect(() => {
         const fetchData = async () => {
+            console.log("Fetching dashboard data for:", startDate.toISOString(), endDate.toISOString());
             try {
                 const [revenue, rooms, students] = await Promise.all([
-                    AnalyticsService.getRevenue(),
-                    AnalyticsService.getRoomUsage(),
-                    AnalyticsService.getStudentPerformance()
+                    AnalyticsService.getRevenue(startDate.toISOString(), endDate.toISOString()),
+                    AnalyticsService.getRoomUsage(startDate.toISOString(), endDate.toISOString()),
+                    AnalyticsService.getStudentPerformance(startDate.toISOString(), endDate.toISOString())
                 ]);
+
+                console.log("Data received:", { revenue: revenue.data, rooms: rooms.data, students: students.data });
 
                 setRevenueData(revenue.data);
                 setRoomData(rooms.data);
@@ -101,7 +114,7 @@ export default function Dashboard() {
         };
 
         fetchData();
-    }, []);
+    }, [startDate, endDate]);
 
     if (loading) {
         return (
@@ -214,11 +227,11 @@ export default function Dashboard() {
                     <p className="text-slate-400 mt-1">Visión general del rendimiento financiero y académico</p>
                 </div>
                 <div className="flex space-x-2" data-html2canvas-ignore="true">
-                    <select className="bg-slate-800 border border-slate-700 text-slate-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:border-accent">
-                        <option>Últimos 30 días</option>
-                        <option>Este Trimestre</option>
-                        <option>Este Año</option>
-                    </select>
+                    <DateRangeSelector onRangeChange={(start, end) => {
+                        console.log("Dashboard: Date range updated", start, end);
+                        setStartDate(start);
+                        setEndDate(end);
+                    }} />
                     <button
                         onClick={handleExport}
                         className="btn bg-accent hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-transform"
@@ -231,10 +244,10 @@ export default function Dashboard() {
             {/* Executive Insights - General Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <InsightBadge type="positive">
-                    Los ingresos totales muestran una <strong>tendencia positiva del 12.5%</strong>, indicando un crecimiento sostenido.
+                    Los ingresos totales son de <strong>${revenueData?.totalRevenue?.toLocaleString()}</strong> en el período seleccionado.
                 </InsightBadge>
                 <InsightBadge type="info">
-                    Se registran <strong>{revenueData?.transactionCount || 0} transacciones</strong> en el período actual, con un incremento del 5.2%.
+                    Se registran <strong>{revenueData?.transactionCount || 0} transacciones</strong> en el período actual.
                 </InsightBadge>
                 <InsightBadge type={roomData?.overallUtilization > 70 ? "positive" : "warning"}>
                     La ocupación de salas está en <strong>{Math.round(roomData?.overallUtilization || 0)}%</strong>, {roomData?.overallUtilization > 70 ? "uso eficiente de recursos" : "capacidad disponible"}.
@@ -248,13 +261,13 @@ export default function Dashboard() {
                     <KPICard
                         title="Ingresos Totales"
                         value={`$${revenueData?.totalRevenue?.toLocaleString()}`}
-                        trend={12.5}
+                        trend={0}
                         icon="💰"
                         color="blue"
                         gradient="from-blue-500 to-blue-600"
                     />
                     <InsightBadge type="positive">
-                        Los ingresos muestran una tendencia creciente del 12.5% en los últimos 6 meses.
+                        Ingresos acumulados en el rango de fechas seleccionado.
                     </InsightBadge>
                 </div>
                 {/* Transacciones */}
@@ -262,13 +275,13 @@ export default function Dashboard() {
                     <KPICard
                         title="Transacciones"
                         value={revenueData?.transactionCount}
-                        trend={5.2}
+                        trend={0}
                         icon="💳"
                         color="purple"
                         gradient="from-purple-500 to-purple-600"
                     />
                     <InsightBadge type="info">
-                        El número de transacciones aumentó un 5.2% respecto al período anterior.
+                        Total de transacciones procesadas en el período.
                     </InsightBadge>
                 </div>
                 {/* Uso de Salas */}
@@ -276,7 +289,7 @@ export default function Dashboard() {
                     <KPICard
                         title="Uso de Salas"
                         value={`${Math.round(roomData?.overallUtilization || 0)}%`}
-                        trend={-2.1}
+                        trend={0}
                         icon="🏢"
                         color="emerald"
                         gradient="from-emerald-500 to-emerald-600"
@@ -290,13 +303,13 @@ export default function Dashboard() {
                     <KPICard
                         title="Estudiantes Activos"
                         value={studentData?.totalStudents}
-                        trend={8.4}
+                        trend={0}
                         icon="🎓"
                         color="amber"
                         gradient="from-amber-500 to-amber-600"
                     />
                     <InsightBadge type="positive">
-                        El número de estudiantes activos creció un 8.4% en los últimos 6 meses.
+                        Total de estudiantes activos con registros en el período.
                     </InsightBadge>
                 </div>
             </div>

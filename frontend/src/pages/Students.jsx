@@ -3,16 +3,32 @@ import { AnalyticsService } from '../services/api';
 
 import InsightBadge from '../components/InsightBadge';
 
+import DateRangeSelector from '../components/DateRangeSelector';
+
 export default function Students() {
     const [data, setData] = useState(null);
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 6);
+        return d;
+    });
+    const [endDate, setEndDate] = useState(() => new Date());
 
     useEffect(() => {
-        AnalyticsService.getStudentPerformance().then(res => setData(res.data));
-    }, []);
+        AnalyticsService.getStudentPerformance(startDate.toISOString(), endDate.toISOString())
+            .then(res => setData(res.data))
+            .catch(err => console.error("Error fetching student data:", err));
+    }, [startDate, endDate]);
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Rendimiento Estudiantil</h2>
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Rendimiento Estudiantil</h2>
+                <DateRangeSelector onRangeChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                }} />
+            </div>
 
             <InsightBadge type="positive">
                 El <strong>{Math.round((data?.byPerformance?.find(p => p.performanceLevel === 'Excellent')?.studentCount || 0) / (data?.totalStudents || 1) * 100)}%</strong> de los estudiantes mantiene un nivel de excelencia. Se sugiere implementar programas de mentoría liderados por estos alumnos.

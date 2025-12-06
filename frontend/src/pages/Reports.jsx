@@ -11,6 +11,7 @@ import {
     ArcElement
 } from 'chart.js';
 import { Bar, Doughnut } from 'react-chartjs-2';
+import DateRangeSelector from '../components/DateRangeSelector';
 
 ChartJS.register(
     CategoryScale,
@@ -409,9 +410,16 @@ function ReportViewer({ report }) {
 
 export default function Reports() {
     const [reports, setReports] = useState([]);
-    const [generating, setGenerating] = useState(false);
     const [selectedReport, setSelectedReport] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 1); // Default to last month for reports
+        return d;
+    });
+    const [endDate, setEndDate] = useState(() => new Date());
     const [isModalOpen, setIsModalOpen] = useState(false);
+
 
     useEffect(() => {
         loadReports();
@@ -421,30 +429,57 @@ export default function Reports() {
         ReportsService.getAll().then(res => setReports(res.data));
     };
 
-    const generateReport = async (type) => {
-        setGenerating(true);
+    const handleGenerateRevenue = async () => {
+        setLoading(true);
         try {
-            if (type === 'revenue') await ReportsService.generateRevenue();
-            else if (type === 'students') await ReportsService.generateStudent();
-            else if (type === 'rooms') await ReportsService.generateRoom();
-            else if (type === 'customers') await ReportsService.generateCustomer();
-
+            await ReportsService.generateRevenue(startDate.toISOString(), endDate.toISOString());
             loadReports();
         } catch (error) {
-            console.error("Error generating report", error);
+            console.error("Error generating revenue report", error);
         } finally {
-            setGenerating(false);
+            setLoading(false);
         }
     };
 
-    const downloadExcelReport = async () => {
-        setGenerating(true);
+    const handleGenerateStudent = async () => {
+        setLoading(true);
         try {
-            // Calculate date range (last 6 months by default)
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setMonth(startDate.getMonth() - 6);
+            await ReportsService.generateStudent(startDate.toISOString(), endDate.toISOString());
+            loadReports();
+        } catch (error) {
+            console.error("Error generating student report", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    const handleGenerateRoom = async () => {
+        setLoading(true);
+        try {
+            await ReportsService.generateRoom(startDate.toISOString(), endDate.toISOString());
+            loadReports();
+        } catch (error) {
+            console.error("Error generating room report", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGenerateCustomer = async () => {
+        setLoading(true);
+        try {
+            await ReportsService.generateCustomer(startDate.toISOString(), endDate.toISOString());
+            loadReports();
+        } catch (error) {
+            console.error("Error generating customer report", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDownloadExcel = async () => {
+        setLoading(true);
+        try {
             const response = await ReportsService.downloadExcel(
                 startDate.toISOString().split('T')[0],
                 endDate.toISOString().split('T')[0]
@@ -468,7 +503,7 @@ export default function Reports() {
             console.error("Error downloading Excel report", error);
             alert("Error al descargar el reporte Excel. Por favor intenta nuevamente.");
         } finally {
-            setGenerating(false);
+            setLoading(false);
         }
     };
 
@@ -493,9 +528,13 @@ export default function Reports() {
                     <p className="text-slate-400 mt-1">Genera y visualiza informes detallados del sistema</p>
                 </div>
                 <div className="flex space-x-3">
+                    <DateRangeSelector onRangeChange={(start, end) => {
+                        setStartDate(start);
+                        setEndDate(end);
+                    }} />
                     <button
-                        onClick={() => generateReport('revenue')}
-                        disabled={generating}
+                        onClick={handleGenerateRevenue}
+                        disabled={loading}
                         className="btn bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-lg shadow-blue-500/20"
                     >
                         + Ingresos

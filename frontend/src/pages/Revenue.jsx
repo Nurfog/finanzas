@@ -1,22 +1,38 @@
 import { useState, useEffect } from 'react';
 import { AnalyticsService } from '../services/api';
 import { Line } from 'react-chartjs-2';
-
+import DateRangeSelector from '../components/DateRangeSelector';
 import InsightBadge from '../components/InsightBadge';
 
 export default function Revenue() {
     const [data, setData] = useState(null);
     const [predictions, setPredictions] = useState(null);
     const [locationId, setLocationId] = useState(1);
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 6); // Default 6 months
+        return d;
+    });
+    const [endDate, setEndDate] = useState(() => new Date());
 
     useEffect(() => {
-        AnalyticsService.getRevenueByLocation().then(res => setData(res.data));
+        AnalyticsService.getRevenueByLocation(startDate.toISOString(), endDate.toISOString()).then(res => setData(res.data));
         AnalyticsService.predictRevenue(locationId, 6).then(res => setPredictions(res.data));
-    }, [locationId]);
+    }, [locationId, startDate, endDate]);
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Análisis de Ingresos</h2>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 className="text-2xl font-bold">Análisis de Ingresos</h2>
+                <DateRangeSelector
+                    startDate={startDate}
+                    endDate={endDate}
+                    onRangeChange={(start, end) => {
+                        setStartDate(start);
+                        setEndDate(end);
+                    }}
+                />
+            </div>
 
             <InsightBadge type="positive">
                 La <strong>Sede Central</strong> mantiene el liderazgo en ingresos, representando un 35% del total facturado. Se recomienda replicar sus estrategias de retención en las sedes Norte y Sur.

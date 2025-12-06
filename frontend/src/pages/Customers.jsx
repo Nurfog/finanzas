@@ -3,16 +3,32 @@ import { AnalyticsService } from '../services/api';
 
 import InsightBadge from '../components/InsightBadge';
 
+import DateRangeSelector from '../components/DateRangeSelector';
+
 export default function Customers() {
     const [segments, setSegments] = useState(null);
+    const [startDate, setStartDate] = useState(() => {
+        const d = new Date();
+        d.setMonth(d.getMonth() - 6);
+        return d;
+    });
+    const [endDate, setEndDate] = useState(() => new Date());
 
     useEffect(() => {
-        AnalyticsService.getCustomerSegments().then(res => setSegments(res.data));
-    }, []);
+        AnalyticsService.getCustomerSegments(startDate.toISOString(), endDate.toISOString())
+            .then(res => setSegments(res.data))
+            .catch(err => console.error("Error fetching customer segments:", err));
+    }, [startDate, endDate]);
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Segmentación de Clientes (IA)</h2>
+            <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold">Segmentación de Clientes (IA)</h2>
+                <DateRangeSelector onRangeChange={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                }} />
+            </div>
 
             <InsightBadge type="info">
                 El análisis de clustering ha identificado <strong>3 segmentos clave</strong>. El "Segmento 2" (Alto Valor) tiene un gasto promedio 3x superior al resto, sugiriendo enfocar esfuerzos de fidelización en este grupo.

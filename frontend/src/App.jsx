@@ -6,6 +6,7 @@ import Customers from './pages/Customers'
 import Rooms from './pages/Rooms'
 import Students from './pages/Students'
 import Reports from './pages/Reports'
+import RoomAnalytics from './pages/RoomAnalytics'
 
 function NavLink({ to, children, icon }) {
     const location = useLocation();
@@ -88,8 +89,8 @@ function SyncButton() {
                 onClick={handleSync}
                 disabled={isRunning}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${isRunning
-                        ? 'bg-blue-500/20 text-blue-400 cursor-not-allowed'
-                        : 'bg-accent hover:bg-accent/80 text-white'
+                    ? 'bg-blue-500/20 text-blue-400 cursor-not-allowed'
+                    : 'bg-accent hover:bg-accent/80 text-white'
                     }`}
                 title={isRunning ? syncStatus?.message : 'Sincronizar datos'}
             >
@@ -132,6 +133,7 @@ function Layout({ children }) {
                     <NavLink to="/revenue" icon="💰">Ingresos</NavLink>
                     <NavLink to="/customers" icon="👥">Clientes</NavLink>
                     <NavLink to="/rooms" icon="🏢">Salas</NavLink>
+                    <NavLink to="/room-analytics" icon="📈">Análisis Salas</NavLink>
                     <NavLink to="/students" icon="🎓">Estudiantes</NavLink>
                     <NavLink to="/reports" icon="📄">Informes</NavLink>
                 </nav>
@@ -177,6 +179,7 @@ function App() {
                     <Route path="/revenue" element={<Revenue />} />
                     <Route path="/customers" element={<Customers />} />
                     <Route path="/rooms" element={<Rooms />} />
+                    <Route path="/room-analytics" element={<RoomAnalytics />} />
                     <Route path="/students" element={<Students />} />
                     <Route path="/reports" element={<Reports />} />
                 </Routes>

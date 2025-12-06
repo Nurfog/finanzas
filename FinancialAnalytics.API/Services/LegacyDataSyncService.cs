@@ -317,6 +317,22 @@ public class LegacyDataSyncService
             {
                 _logger.LogInformation("No hay estudiantes nuevos para sincronizar");
             }
+
+            // DATA ENRICHMENT: Randomize Enrollment Dates for ALL students to ensure realistic analytics
+            // This fixes the issue where all students had the same static enrollment date
+            _logger.LogInformation("Actualizando fechas de inscripción para distribuir datos...");
+            var allStudents = await financial.Students.ToListAsync();
+            var random = new Random();
+            foreach (var student in allStudents)
+            {
+                // Spread enrollment over the last 24 months
+                int monthsBack = random.Next(0, 24);
+                // Add some random days too
+                int daysBack = random.Next(0, 30);
+                student.EnrollmentDate = DateTime.Now.AddMonths(-monthsBack).AddDays(-daysBack);
+            }
+            await financial.SaveChangesAsync();
+            _logger.LogInformation("✓ Fechas de inscripción actualizadas y distribuidas");
         }
         catch (Exception ex)
         {

@@ -79,12 +79,14 @@ public class AnalyticsController : ControllerBase
     /// <summary>
     /// Get customer segmentation analysis
     /// </summary>
-    [HttpGet("customers/segments")]
-    public async Task<IActionResult> GetCustomerSegments()
+
+    public async Task<IActionResult> GetCustomerSegments(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var result = await _analyticsService.GetCustomerSegments();
+            var result = await _analyticsService.GetCustomerSegments(startDate, endDate);
             return Ok(result);
         }
         catch (Exception ex)
@@ -98,11 +100,13 @@ public class AnalyticsController : ControllerBase
     /// Get room usage analytics
     /// </summary>
     [HttpGet("rooms/usage")]
-    public async Task<IActionResult> GetRoomUsageAnalytics()
+    public async Task<IActionResult> GetRoomUsageAnalytics(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var result = await _analyticsService.GetRoomUsageAnalytics();
+            var result = await _analyticsService.GetRoomUsageAnalytics(startDate, endDate);
             return Ok(result);
         }
         catch (Exception ex)
@@ -116,11 +120,13 @@ public class AnalyticsController : ControllerBase
     /// Get student performance analytics
     /// </summary>
     [HttpGet("students/performance")]
-    public async Task<IActionResult> GetStudentAnalytics()
+    public async Task<IActionResult> GetStudentAnalytics(
+        [FromQuery] DateTime? startDate = null,
+        [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var result = await _analyticsService.GetStudentAnalytics();
+            var result = await _analyticsService.GetStudentAnalytics(startDate, endDate);
             return Ok(result);
         }
         catch (Exception ex)
